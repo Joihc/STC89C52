@@ -1,0 +1,60 @@
+C51 COMPILER V9.57.0.0   MENU3                                                             05/31/2018 15:56:48 PAGE 1   
+
+
+C51 COMPILER V9.57.0.0, COMPILATION OF MODULE MENU3
+OBJECT MODULE PLACED IN .\Objects\menu3.obj
+COMPILER INVOKED BY: D:\pro\keil5\core\C51\BIN\C51.EXE source\menu3.c LARGE OPTIMIZE(9,SPEED) BROWSE INCDIR(.\include) D
+                    -EBUG OBJECTEXTEND PRINT(.\Listings\menu3.lst) TABS(2) OBJECT(.\Objects\menu3.obj)
+
+line level    source
+
+   1          #define MENU3_C_
+   2          #include "menu3.h"
+   3          
+   4          
+   5          //uint8 code waring_str[5][9] ={
+   6          //  {"锅内:"},
+   7          //  {"漏料报警:"},
+   8          //  {"散热报警:"},
+   9          //  {"故障报警"}
+  10          //};
+  11          //static uint4 waring_value[5]={
+  12          //  1,
+  13          //  1,
+  14          //  0,
+  15          //  0,
+  16          //  1,
+  17          //};
+  18          
+  19          //int8 menu3_now_page = 0;
+  20          //int8 menu3_old_page = -1;
+  21          
+  22          //显示菜单3界面
+  23          //void Discrable_Menu3_String(uint8 *string,int16 value,uint8 per)
+  24          //{
+  25          //  
+  26          //}
+  27          ////返回多少页 0 1 2 3
+  28          //void Display_Menu3_Screen()
+  29          //{
+  30          //  
+  31          //}
+  32          
+  33          //void Set_Menu3_Value(int8 index,int16 value)
+  34          //{
+  35          //  
+  36          //}
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

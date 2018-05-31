@@ -1,0 +1,14 @@
+".\Objects\STARTUP.obj",
+".\Objects\lcd12864.obj",
+".\Objects\led.obj",
+".\Objects\main.obj",
+".\Objects\time.obj",
+".\Objects\time0.obj",
+".\Objects\time1.obj",
+".\Objects\usart.obj",
+".\Objects\button.obj",
+".\Objects\menu1.obj",
+".\Objects\menu2.obj",
+".\Objects\menu3.obj" 
+TO ".\Objects\Client" 
+PRINT(".\Listings\Client.m51") RAMSIZE(256) 

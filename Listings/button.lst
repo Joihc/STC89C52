@@ -1,0 +1,210 @@
+C51 COMPILER V9.57.0.0   BUTTON                                                            05/31/2018 15:56:47 PAGE 1   
+
+
+C51 COMPILER V9.57.0.0, COMPILATION OF MODULE BUTTON
+OBJECT MODULE PLACED IN .\Objects\button.obj
+COMPILER INVOKED BY: D:\pro\keil5\core\C51\BIN\C51.EXE source\button.c LARGE OPTIMIZE(9,SPEED) BROWSE INCDIR(.\include) 
+                    -DEBUG OBJECTEXTEND PRINT(.\Listings\button.lst) TABS(2) OBJECT(.\Objects\button.obj)
+
+line level    source
+
+   1          #define BUTTON_C_
+   2          #include "button.h"
+   3          
+   4          static bit up_down;
+   5          static bit down_down;
+   6          static bit left_down;
+   7          static bit right_down;
+   8          static bit ok_down;
+   9          static bit return_down;
+  10          
+  11          static uint8 up_num;
+  12          static uint8 down_num;
+  13          static uint8 left_num;
+  14          static uint8 right_num;
+  15          static uint8 ok_num;
+  16          static uint8 return_num;
+  17          
+  18          
+  19          bit Up_Key_Down()
+  20          {
+  21   1        while(!UP_BTN && !up_down)
+  22   1        {
+  23   2          up_num++;
+  24   2          if(up_num >CHECK_BUTTON_TIME)
+  25   2          {
+  26   3            up_num =0;
+  27   3            up_down =1;
+  28   3            Beep_Change();
+  29   3            return 1;
+  30   3          }
+  31   2        }
+  32   1        up_num =0;
+  33   1        while(UP_BTN && up_down)
+  34   1        {
+  35   2          up_num++;
+  36   2          if(up_num >CHECK_BUTTON_TIME)
+  37   2          {
+  38   3            up_num =0;
+  39   3            up_down =0;
+  40   3            break;
+  41   3          }
+  42   2        }
+  43   1        up_num =0;
+  44   1        return 0;
+  45   1      }
+  46          bit Down_Key_Down()
+  47          {
+  48   1        while(!DOWN_BTN && !down_down)
+  49   1        {
+  50   2            down_num++;
+  51   2            if(down_num >CHECK_BUTTON_TIME)
+  52   2            {
+  53   3              down_num =0;
+  54   3              down_down =1;
+C51 COMPILER V9.57.0.0   BUTTON                                                            05/31/2018 15:56:47 PAGE 2   
+
+  55   3              Beep_Change();
+  56   3              return 1;
+  57   3            }
+  58   2        }
+  59   1        down_num =0;
+  60   1        while(DOWN_BTN && down_down)
+  61   1        {
+  62   2          down_num++;
+  63   2          if(down_num >CHECK_BUTTON_TIME)
+  64   2          {
+  65   3            down_num =0;
+  66   3            down_down =0;
+  67   3            break;
+  68   3          }
+  69   2        }
+  70   1        down_num =0;
+  71   1        return 0;
+  72   1      }
+  73          bit Left_Key_Down()
+  74          {
+  75   1        while(!LEFT_BTN && !left_down)
+  76   1        {
+  77   2            left_num++;
+  78   2            if(left_num >CHECK_BUTTON_TIME)
+  79   2            {
+  80   3              left_num =0;
+  81   3              left_down =1;
+  82   3              Beep_Change();
+  83   3              return 1;
+  84   3            }
+  85   2        }
+  86   1        left_num =0;
+  87   1        while(LEFT_BTN && left_down)
+  88   1        {
+  89   2          left_num++;
+  90   2          if(left_num >CHECK_BUTTON_TIME)
+  91   2          {
+  92   3            left_num =0;
+  93   3            left_down =0;
+  94   3            break;
+  95   3          }
+  96   2        }
+  97   1        left_num =0;
+  98   1        return 0;
+  99   1      }
+ 100          bit Right_Key_Down()
+ 101          {
+ 102   1        while(!RIGHT_BTN && !right_down)
+ 103   1        {
+ 104   2            right_num++;
+ 105   2            if(right_num >CHECK_BUTTON_TIME)
+ 106   2            {
+ 107   3              right_num =0;
+ 108   3              right_down =1;
+ 109   3              Beep_Change();
+ 110   3              return 1;
+ 111   3            }
+ 112   2        }
+ 113   1        right_num=0;
+ 114   1        while(RIGHT_BTN && right_down)
+ 115   1        {
+ 116   2          right_num++;
+C51 COMPILER V9.57.0.0   BUTTON                                                            05/31/2018 15:56:47 PAGE 3   
+
+ 117   2          if(right_num >CHECK_BUTTON_TIME)
+ 118   2          {
+ 119   3            right_num =0;
+ 120   3            right_down =0;
+ 121   3            break;
+ 122   3          }
+ 123   2        }
+ 124   1        right_num =0;
+ 125   1        return 0;
+ 126   1      }
+ 127          bit Ok_Key_Down()
+ 128          {
+ 129   1        while(!OK_BTN && !ok_down)
+ 130   1        {
+ 131   2            ok_num++;
+ 132   2            if(ok_num >CHECK_BUTTON_TIME)
+ 133   2            {
+ 134   3              ok_num =0;
+ 135   3              ok_down =1;
+ 136   3              Beep_Change();
+ 137   3              return 1;
+ 138   3            }
+ 139   2        }
+ 140   1        ok_num =0;
+ 141   1        while(OK_BTN && ok_down)
+ 142   1        {
+ 143   2          ok_num++;
+ 144   2          if(ok_num >CHECK_BUTTON_TIME)
+ 145   2          {
+ 146   3            ok_num =0;
+ 147   3            ok_down =0;
+ 148   3            break;
+ 149   3          }
+ 150   2        }
+ 151   1        ok_num =0;
+ 152   1        return 0;
+ 153   1      }
+ 154          bit Return_Key_Down()
+ 155          {
+ 156   1        while(!RETURN_BTN && !return_down)
+ 157   1        {
+ 158   2            return_num++;
+ 159   2            if(return_num >CHECK_BUTTON_TIME)
+ 160   2            {
+ 161   3              return_num =0;
+ 162   3              return_down =1;
+ 163   3              Beep_Change();
+ 164   3              return 1;
+ 165   3            }
+ 166   2        }
+ 167   1        return_num =0;
+ 168   1        while(RETURN_BTN && return_down)
+ 169   1        {
+ 170   2          return_num++;
+ 171   2          if(return_num >CHECK_BUTTON_TIME)
+ 172   2          {
+ 173   3            return_num =0;
+ 174   3            return_down =0;
+ 175   3            break;
+ 176   3          }
+ 177   2        }
+ 178   1        return_num =0;
+C51 COMPILER V9.57.0.0   BUTTON                                                            05/31/2018 15:56:47 PAGE 4   
+
+ 179   1        return 0;
+ 180   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    323    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      6    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      6    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

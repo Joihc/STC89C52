@@ -1,0 +1,40 @@
+C51 COMPILER V9.57.0.0   TIME0                                                             05/31/2018 15:56:47 PAGE 1   
+
+
+C51 COMPILER V9.57.0.0, COMPILATION OF MODULE TIME0
+OBJECT MODULE PLACED IN .\Objects\time0.obj
+COMPILER INVOKED BY: D:\pro\keil5\core\C51\BIN\C51.EXE source\time0.c LARGE OPTIMIZE(9,SPEED) BROWSE INCDIR(.\include) D
+                    -EBUG OBJECTEXTEND PRINT(.\Listings\time0.lst) TABS(2) OBJECT(.\Objects\time0.obj)
+
+line level    source
+
+   1          #define TIME0_C_
+   2          #include "time0.h"
+   3          
+   4          void Init_TIME0()
+   5          {
+   6   1        TMOD = 0x01;                    //set timer0 as mode1 (16-bit)
+   7   1        TL0 = T1MS;                     //initial timer0 low byte
+   8   1        TH0 = T1MS >> 8;                //initial timer0 high byte
+   9   1        TR0 = 1;                        //timer0 start running
+  10   1        ET0 = 1;                        //enable timer0 interrupt
+  11   1      }
+  12          void Interrupt_Init0()
+  13          {
+  14   1        TL0 = T1MS;                     //initial timer0 low byte
+  15   1        TH0 = T1MS >> 8;                //initial timer0 high byte
+  16   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     21    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
