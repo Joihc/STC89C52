@@ -157,7 +157,7 @@ void Wr_Data(uint8 wrdata) //写数据
 	E=0;
 }
 
-void Wr_Command(uint8 wrcommand,busyc) //写指令
+void Wr_Command(uint8 wrcommand,uint8 busyc) //写指令
 {
 	if(busyc)
 	RDbf();
@@ -215,5 +215,4 @@ void Set_LCMdata(uint8 wrdata)
 	Test_Bit(wrdata,7)?Set_Bit(LCMdata,0):Clr_Bit(LCMdata,0);
 }
 
-void Display_Menu()
-{}
+

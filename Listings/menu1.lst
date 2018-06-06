@@ -1,4 +1,4 @@
-C51 COMPILER V9.57.0.0   MENU1                                                             05/31/2018 15:56:47 PAGE 1   
+C51 COMPILER V9.57.0.0   MENU1                                                             06/06/2018 15:17:48 PAGE 1   
 
 
 C51 COMPILER V9.57.0.0, COMPILATION OF MODULE MENU1
@@ -28,259 +28,273 @@ line level    source
   18          };
   19          //最大-9999~+ 32767
   20          static int16 display_value[MENU1_INDEX]={
-  21            22222,
-  22            888,
-  23            777,
-  24            1001,
-  25            555,
-  26            44,
+  21            0,
+  22            0,
+  23            0,
+  24            0,
+  25            0,
+  26            0,
   27            0,
-  28            -6,
-  29            -77,
-  30            -888,
-  31            -9999,
+  28            0,
+  29            0,
+  30            0,
+  31            0,
   32          };
   33          int8 menu1_now_page = 0;
   34          int8 menu1_old_page = -1;
   35          bit menu1_display =0;
   36          
   37          static uint8 menu1_str[16]={""};
-  38          
+  38          static uint32 heart_beat_men1 =0;
   39          
-  40          //显示菜单1界面
-  41          void Discrable_Menu1_String(uint8 *string,int16 value,uint8 per)
-  42          {
-  43   1        uint8 mark;
-  44   1        for(mark=0;mark<9;mark++)
-  45   1        {
-  46   2          menu1_str[mark]=string[mark];
-  47   2        }
-  48   1        if(value <-9999)
-  49   1        {
-  50   2          value = -9999;
-  51   2        }
-  52   1        mark = (value<0?1:0);
-  53   1        value = abs(value);
-  54   1        
-C51 COMPILER V9.57.0.0   MENU1                                                             05/31/2018 15:56:47 PAGE 2   
+  40          bit menu1_value_update =0;
+  41          
+  42          //显示菜单1界面
+  43          void Discrable_Menu1_String(uint8 *string,int16 value,uint8 per)
+  44          {
+  45   1        uint8 mark;
+  46   1        for(mark=0;mark<9;mark++)
+  47   1        {
+  48   2          menu1_str[mark]=string[mark];
+  49   2        }
+  50   1        if(value <-9999)
+  51   1        {
+  52   2          value = -9999;
+  53   2        }
+  54   1        mark = (value<0?1:0);
+C51 COMPILER V9.57.0.0   MENU1                                                             06/06/2018 15:17:48 PAGE 2   
 
-  55   1        
-  56   1        menu1_str[9] = value%100000/10000+0x30;
-  57   1        if(menu1_str[9]=='0')
-  58   1        {
-  59   2          menu1_str[9] = ' ';
-  60   2          if(mark && (value>999))
-  61   2          {
-  62   3            menu1_str[9] = '-';
-  63   3            mark =0;    
-  64   3          }
-  65   2        }
-  66   1        
-  67   1        menu1_str[10] = value%10000/1000+0x30;
-  68   1        if(menu1_str[10]=='0' && menu1_str[9]==' ')
-  69   1        {
-  70   2          menu1_str[10] = ' ';
-  71   2          if(mark && (value>99))
-  72   2          {
-  73   3            menu1_str[10] = '-';
-  74   3            mark =0;
-  75   3          }
-  76   2        }
-  77   1        menu1_str[11] = value%1000/100+0x30;
-  78   1        if(menu1_str[11]=='0'&& menu1_str[10]==' ' && menu1_str[10]==' ')
-  79   1        {
-  80   2          menu1_str[11] = ' ';
-  81   2          if(mark)
-  82   2          {
-  83   3            menu1_str[11] = '-';
-  84   3            mark =0;      
-  85   3          }
-  86   2        }
-  87   1        menu1_str[12] = value%100/10+0x30;
-  88   1        menu1_str[13] ='.'; 
-  89   1        menu1_str[14] =value%10+0x30;
-  90   1        switch(per)
-  91   1        {
-  92   2          case 0:
-  93   2            menu1_str[15] = 'K';
-  94   2            break;
-  95   2          case 1:
-  96   2            menu1_str[15] = 'V';
-  97   2            break;
-  98   2          case 2:
-  99   2            menu1_str[15] = 'A';
- 100   2            break;
- 101   2          case 3:
- 102   2            menu1_str[15] = 'A';
- 103   2            break;
- 104   2          case 4:
- 105   2            menu1_str[15] = 'A';
- 106   2            break;
- 107   2          case 5:
- 108   2            menu1_str[15] = 'C';
- 109   2            break;
- 110   2          case 6:
- 111   2            menu1_str[15] = 'C';
- 112   2            break;
- 113   2          case 7:
- 114   2            menu1_str[15] = 'K';
- 115   2            break;
- 116   2          case 8:
-C51 COMPILER V9.57.0.0   MENU1                                                             05/31/2018 15:56:47 PAGE 3   
+  55   1        value = abs(value);
+  56   1        
+  57   1        
+  58   1        menu1_str[9] = value%100000/10000+0x30;
+  59   1        if(menu1_str[9]=='0')
+  60   1        {
+  61   2          menu1_str[9] = ' ';
+  62   2          if(mark && (value>999))
+  63   2          {
+  64   3            menu1_str[9] = '-';
+  65   3            mark =0;    
+  66   3          }
+  67   2        }
+  68   1        
+  69   1        menu1_str[10] = value%10000/1000+0x30;
+  70   1        if(menu1_str[10]=='0' && menu1_str[9]==' ')
+  71   1        {
+  72   2          menu1_str[10] = ' ';
+  73   2          if(mark && (value>99))
+  74   2          {
+  75   3            menu1_str[10] = '-';
+  76   3            mark =0;
+  77   3          }
+  78   2        }
+  79   1        menu1_str[11] = value%1000/100+0x30;
+  80   1        if(menu1_str[11]=='0'&& menu1_str[10]==' ' && menu1_str[10]==' ')
+  81   1        {
+  82   2          menu1_str[11] = ' ';
+  83   2          if(mark)
+  84   2          {
+  85   3            menu1_str[11] = '-';
+  86   3            mark =0;      
+  87   3          }
+  88   2        }
+  89   1        menu1_str[12] = value%100/10+0x30;
+  90   1        menu1_str[13] ='.'; 
+  91   1        menu1_str[14] =value%10+0x30;
+  92   1        switch(per)
+  93   1        {
+  94   2          case 0:
+  95   2            menu1_str[15] = 'K';
+  96   2            break;
+  97   2          case 1:
+  98   2            menu1_str[15] = 'V';
+  99   2            break;
+ 100   2          case 2:
+ 101   2            menu1_str[15] = 'A';
+ 102   2            break;
+ 103   2          case 3:
+ 104   2            menu1_str[15] = 'A';
+ 105   2            break;
+ 106   2          case 4:
+ 107   2            menu1_str[15] = 'A';
+ 108   2            break;
+ 109   2          case 5:
+ 110   2            menu1_str[15] = 'C';
+ 111   2            break;
+ 112   2          case 6:
+ 113   2            menu1_str[15] = 'C';
+ 114   2            break;
+ 115   2          case 7:
+ 116   2            menu1_str[15] = 'K';
+C51 COMPILER V9.57.0.0   MENU1                                                             06/06/2018 15:17:48 PAGE 3   
 
- 117   2            menu1_str[15] = 'C';
- 118   2            break;
- 119   2          case 9:
- 120   2            menu1_str[15] = '%';
- 121   2            break;
- 122   2          default:
- 123   2            menu1_str[15] = ' ';
- 124   2            break;
- 125   2        }
- 126   1      }
- 127            
- 128          //返回多少页 0 1 2 3
- 129          void Display_Menu1_Screen()
- 130          {
- 131   1        while(1)
- 132   1        {
- 133   2          if(menu1_old_page < MENU1_INDEX/4 && Down_Key_Down())
- 134   2          {
- 135   3            menu1_now_page++;
- 136   3          }
- 137   2          else if(menu1_old_page >0 && Up_Key_Down())
- 138   2          {
- 139   3            menu1_now_page--;
- 140   3          }
- 141   2          else  if(Return_Key_Down())
- 142   2          { 
- 143   3            break;
- 144   3          }
- 145   2          if(menu1_now_page == menu1_old_page &&  menu1_display == 1)
- 146   2          {
- 147   3            continue;
- 148   3          }
- 149   2          menu1_display=1;
- 150   2          menu1_old_page = menu1_now_page;
- 151   2          
- 152   2          Wr_Command(0x01,1); //显示清屏
- 153   2          Discrable_Menu1_String(display_str[menu1_old_page*4],display_value[menu1_old_page*4],menu1_old_page*4);
- 154   2          Display_String(1,menu1_str);
- 155   2          if(menu1_old_page*4+1<MENU1_INDEX)
- 156   2          {
- 157   3            Discrable_Menu1_String(display_str[menu1_old_page*4+1],display_value[menu1_old_page*4+1],menu1_old_page
-             -*4+1);
- 158   3            Display_String(2,menu1_str);
- 159   3          }
- 160   2          if(menu1_old_page*4+2<MENU1_INDEX)
- 161   2          {
- 162   3            Discrable_Menu1_String(display_str[menu1_old_page*4+2],display_value[menu1_old_page*4+2],menu1_old_page
-             -*4+2);
- 163   3            Display_String(3,menu1_str);
- 164   3          }
- 165   2          if(menu1_old_page*4+3<MENU1_INDEX)
+ 117   2            break;
+ 118   2          case 8:
+ 119   2            menu1_str[15] = 'C';
+ 120   2            break;
+ 121   2          case 9:
+ 122   2            menu1_str[15] = '%';
+ 123   2            break;
+ 124   2          default:
+ 125   2            menu1_str[15] = ' ';
+ 126   2            break;
+ 127   2        }
+ 128   1      }
+ 129            
+ 130          //返回多少页 0 1 2 3
+ 131          void Display_Menu1_Screen()
+ 132          {
+ 133   1        while(1)
+ 134   1        {
+ 135   2          if(menu1_old_page < MENU1_INDEX/4 && Down_Key_Down())
+ 136   2          {
+ 137   3            menu1_now_page++;
+ 138   3          }
+ 139   2          else if(menu1_old_page >0 && Up_Key_Down())
+ 140   2          {
+ 141   3            menu1_now_page--;
+ 142   3          }
+ 143   2          else  if(Return_Key_Down())
+ 144   2          { 
+ 145   3            break;
+ 146   3          }
+ 147   2          
+ 148   2          Usart_Update();
+ 149   2          
+ 150   2          if(menu1_now_page == menu1_old_page &&  menu1_display == 1)
+ 151   2          {
+ 152   3            if(menu1_value_update)
+ 153   3            {
+ 154   4              menu1_value_update = 0;
+ 155   4              Update_Menu1_Value();
+ 156   4            }
+ 157   3            continue;
+ 158   3          }
+ 159   2          menu1_display=1;
+ 160   2          menu1_old_page = menu1_now_page;
+ 161   2          
+ 162   2          Wr_Command(0x01,1); //显示清屏
+ 163   2          Discrable_Menu1_String(display_str[menu1_old_page*4],display_value[menu1_old_page*4],menu1_old_page*4);
+ 164   2          Display_String(1,menu1_str);
+ 165   2          if(menu1_old_page*4+1<MENU1_INDEX)
  166   2          {
- 167   3            Discrable_Menu1_String(display_str[menu1_old_page*4+3],display_value[menu1_old_page*4+3],menu1_old_page
-             -*4+3);
- 168   3            Display_String(4,menu1_str);
+ 167   3            Discrable_Menu1_String(display_str[menu1_old_page*4+1],display_value[menu1_old_page*4+1],menu1_old_page
+             -*4+1);
+ 168   3            Display_String(2,menu1_str);
  169   3          }
- 170   2        }
- 171   1        menu1_display = 0;
- 172   1      }
- 173          
- 174          
- 175          void Set_Menu1_Value(int8 index,int16 value)
-C51 COMPILER V9.57.0.0   MENU1                                                             05/31/2018 15:56:47 PAGE 4   
+ 170   2          if(menu1_old_page*4+2<MENU1_INDEX)
+ 171   2          {
+ 172   3            Discrable_Menu1_String(display_str[menu1_old_page*4+2],display_value[menu1_old_page*4+2],menu1_old_page
+             -*4+2);
+ 173   3            Display_String(3,menu1_str);
+ 174   3          }
+ 175   2          if(menu1_old_page*4+3<MENU1_INDEX)
+ 176   2          {
+C51 COMPILER V9.57.0.0   MENU1                                                             06/06/2018 15:17:48 PAGE 4   
 
- 176          {
- 177   1        int8 mark;
- 178   1        if(!menu1_display)
- 179   1        {
- 180   2          return;
- 181   2        }
- 182   1        if(value <-9999)
- 183   1        {
- 184   2          value = -9999;
- 185   2        }
- 186   1        mark = (value<0?1:0);
- 187   1        if(display_value[index] != value)
- 188   1        {
- 189   2          display_value[index] = value;
- 190   2          if(index/4 == menu1_old_page && menu1_display)
- 191   2          {
- 192   3            switch(index%4)
- 193   3            {
- 194   4              case 0:
- 195   4                Wr_Command(0x84,1);
- 196   4                break;
- 197   4              case 1:
- 198   4                Wr_Command(0x94,1);
- 199   4                break;
- 200   4              case 2:
- 201   4                Wr_Command(0x8c,1);
- 202   4                break;
- 203   4              case 3:
- 204   4                Wr_Command(0x9c,1);
- 205   4                break;
- 206   4            }
- 207   3            menu1_str[8]=':';
- 208   3            
- 209   3            value = abs(value);
- 210   3        
- 211   3        
- 212   3            menu1_str[9] = value%100000/10000+0x30;
- 213   3            if(menu1_str[9]=='0')
- 214   3            {
- 215   4              menu1_str[9] = ' ';
- 216   4              if(mark && (value>999))
- 217   4              {
- 218   5                menu1_str[9] = '-';
- 219   5                mark =0;    
- 220   5              }
- 221   4            }
- 222   3        
- 223   3            menu1_str[10] = value%10000/1000+0x30;
- 224   3            if(menu1_str[10]=='0'&& menu1_str[9]==' ')
- 225   3            {
- 226   4              menu1_str[10] = ' ';
- 227   4              if(mark && (value>99))
- 228   4              {
- 229   5                menu1_str[10] = '-';
- 230   5                mark =0;
- 231   5              }
- 232   4            }
- 233   3            menu1_str[11] = value%1000/100+0x30;
- 234   3            if(menu1_str[11]=='0'&& menu1_str[10]==' '&& menu1_str[9]==' ')
- 235   3            {
- 236   4              menu1_str[11] = ' ';
- 237   4              if(mark)
-C51 COMPILER V9.57.0.0   MENU1                                                             05/31/2018 15:56:47 PAGE 5   
+ 177   3            Discrable_Menu1_String(display_str[menu1_old_page*4+3],display_value[menu1_old_page*4+3],menu1_old_page
+             -*4+3);
+ 178   3            Display_String(4,menu1_str);
+ 179   3          }
+ 180   2        }
+ 181   1        menu1_display = 0;
+ 182   1      }
+ 183          void Update_Menu1_Value()
+ 184          {
+ 185   1        uint8 mark;
+ 186   1        uint8 i=0;
+ 187   1        int16 value;
+ 188   1        for(i=menu1_old_page*4;i<MENU1_INDEX && i<(menu1_old_page*4+4);i++)
+ 189   1        {
+ 190   2            mark = (display_value[i]<0?1:0);
+ 191   2            switch(i%4)
+ 192   2            {
+ 193   3              case 0:
+ 194   3                Wr_Command(0x84,1);
+ 195   3                break;
+ 196   3              case 1:
+ 197   3                Wr_Command(0x94,1);
+ 198   3                break;
+ 199   3              case 2:
+ 200   3                Wr_Command(0x8c,1);
+ 201   3                break;
+ 202   3              case 3:
+ 203   3                Wr_Command(0x9c,1);
+ 204   3                break;
+ 205   3            }
+ 206   2            menu1_str[8]=':';
+ 207   2            
+ 208   2            value = abs(display_value[i]);
+ 209   2        
+ 210   2        
+ 211   2            menu1_str[9] = value%100000/10000+0x30;
+ 212   2            if(menu1_str[9]=='0')
+ 213   2            {
+ 214   3              menu1_str[9] = ' ';
+ 215   3              if(mark && (value>999))
+ 216   3              {
+ 217   4                menu1_str[9] = '-';
+ 218   4                mark =0;    
+ 219   4              }
+ 220   3            }
+ 221   2        
+ 222   2            menu1_str[10] = value%10000/1000+0x30;
+ 223   2            if(menu1_str[10]=='0'&& menu1_str[9]==' ')
+ 224   2            {
+ 225   3              menu1_str[10] = ' ';
+ 226   3              if(mark && (value>99))
+ 227   3              {
+ 228   4                menu1_str[10] = '-';
+ 229   4                mark =0;
+ 230   4              }
+ 231   3            }
+ 232   2            menu1_str[11] = value%1000/100+0x30;
+ 233   2            if(menu1_str[11]=='0'&& menu1_str[10]==' '&& menu1_str[9]==' ')
+ 234   2            {
+ 235   3              menu1_str[11] = ' ';
+ 236   3              if(mark)
+ 237   3              {
+C51 COMPILER V9.57.0.0   MENU1                                                             06/06/2018 15:17:48 PAGE 5   
 
- 238   4              {
- 239   5                menu1_str[11] = '-';
- 240   5                mark =0;      
- 241   5              }
- 242   4            }
- 243   3            menu1_str[12]   = value%100/10+0x30;
- 244   3            menu1_str[13] ='.'; 
- 245   3            menu1_str[14] =value%10+0x30;
- 246   3            for(mark=8;mark<15;mark++)
- 247   3            {
- 248   4              Wr_Data(menu1_str[mark]);
- 249   4            }
- 250   3          }
- 251   2        }
- 252   1      }
+ 238   4                menu1_str[11] = '-';
+ 239   4                mark =0;      
+ 240   4              }
+ 241   3            }
+ 242   2            menu1_str[12]   = value%100/10+0x30;
+ 243   2            menu1_str[13] ='.'; 
+ 244   2            menu1_str[14] =value%10+0x30;
+ 245   2            for(mark=8;mark<15;mark++)
+ 246   2            {
+ 247   3              Wr_Data(menu1_str[mark]);
+ 248   3            }
+ 249   2        }
+ 250   1      }
+ 251          
+ 252          void Set_Menu1_Value(int8 index,int16 value)
+ 253          {
+ 254   1        if(value <-9999)
+ 255   1        {
+ 256   2          value = -9999;
+ 257   2        }
+ 258   1        if(display_value[index] != value)
+ 259   1        {
+ 260   2          display_value[index] = value;
+ 261   2          if(index/4 == menu1_old_page && menu1_display)
+ 262   2          {
+ 263   3            menu1_value_update = 1;
+ 264   3          }
+ 265   2        }
+ 266   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1363    ----
+   CODE SIZE        =   1401    ----
    CONSTANT SIZE    =     99    ----
-   XDATA SIZE       =     40      10
+   XDATA SIZE       =     44      11
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----
-   BIT SIZE         =      1    ----
+   BIT SIZE         =      2    ----
 END OF MODULE INFORMATION.
 
 

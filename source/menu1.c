@@ -18,24 +18,26 @@ uint8  code display_str[MENU1_INDEX][MENU1_NUM] = {
 };
 //最大-9999~+ 32767
 static int16 display_value[MENU1_INDEX]={
-	22222,
-	888,
-	777,
-	1001,
-	555,
-	44,
 	0,
-	-6,
-	-77,
-	-888,
-	-9999,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
 };
 int8 menu1_now_page = 0;
 int8 menu1_old_page = -1;
 bit menu1_display =0;
 
 static uint8 menu1_str[16]={""};
+static uint32 heart_beat_men1 =0;
 
+bit menu1_value_update =0;
 
 //显示菜单1界面
 void Discrable_Menu1_String(uint8 *string,int16 value,uint8 per)
@@ -142,8 +144,16 @@ void Display_Menu1_Screen()
 		{	
 			break;
 		}
+		
+		Usart_Update();
+		
 		if(menu1_now_page == menu1_old_page &&  menu1_display == 1)
 		{
+			if(menu1_value_update)
+			{
+				menu1_value_update = 0;
+				Update_Menu1_Value();
+			}
 			continue;
 		}
 		menu1_display=1;
@@ -170,26 +180,15 @@ void Display_Menu1_Screen()
 	}
 	menu1_display = 0;
 }
-
-
-void Set_Menu1_Value(int8 index,int16 value)
+void Update_Menu1_Value()
 {
-	int8 mark;
-	if(!menu1_display)
+	uint8 mark;
+	uint8 i=0;
+	int16 value;
+	for(i=menu1_old_page*4;i<MENU1_INDEX && i<(menu1_old_page*4+4);i++)
 	{
-		return;
-	}
-	if(value <-9999)
-	{
-		value = -9999;
-	}
-	mark = (value<0?1:0);
-	if(display_value[index] != value)
-	{
-		display_value[index] = value;
-		if(index/4 == menu1_old_page && menu1_display)
-		{
-			switch(index%4)
+			mark = (display_value[i]<0?1:0);
+			switch(i%4)
 			{
 				case 0:
 					Wr_Command(0x84,1);
@@ -206,7 +205,7 @@ void Set_Menu1_Value(int8 index,int16 value)
 			}
 			menu1_str[8]=':';
 			
-			value = abs(value);
+			value = abs(display_value[i]);
 	
 	
 			menu1_str[9] = value%100000/10000+0x30;
@@ -247,6 +246,21 @@ void Set_Menu1_Value(int8 index,int16 value)
 			{
 				Wr_Data(menu1_str[mark]);
 			}
+	}
+}
+
+void Set_Menu1_Value(int8 index,int16 value)
+{
+	if(value <-9999)
+	{
+		value = -9999;
+	}
+	if(display_value[index] != value)
+	{
+		display_value[index] = value;
+		if(index/4 == menu1_old_page && menu1_display)
+		{
+			menu1_value_update = 1;
 		}
 	}
 }

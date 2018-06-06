@@ -10,15 +10,9 @@
 /* define variables */
 uint16 count;
 
-
-
-
-
-
 void main()
 {
 	Lcm_Init();
-	
 	
 	Init_TIME0();
 	Init_TIME1();
@@ -47,15 +41,9 @@ void Timer0() interrupt 1
 }
 void Usart() interrupt 4
 {
-		if(ReceiveServicePacket())    
+		if(RI)
     {
-        //数据包长度正确则执行以下代码
-        Deal_UART_RecData(); 						
+        Interrupt_Queue(SBUF);
+        RI=0;       
     }
-    else
-    {
-        //数据包长度错误则执行以下代码 
-				//SetLcdData(Title,1);	
-    }
-		RI=0;  //接收并处理一次数据后把接收中断标志清除一下，拒绝响应在中断接收忙的时候发来的请求  
 }

@@ -18,25 +18,27 @@ uint8  code set_str[MENU2_INDEX][MENU2_NUM] = {
 	{"最小IGBT频率"},
 	{"最大IGBT温度"},
 	{"限制工作时间"},
-	{"  修改密码  "},
+	{"恢复出厂设置"},
 };
 
 static int16 set_value[MENU2_INDEX]={
-	9000,
-	888,
-	777,
-	6666,
-	5555,
-	444,
-	3,
-	2222,
-	1111,
-	000,
-	11,
-	11,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
 	0,
 	0,
 };
+
+bit menu2_value_update = 0;
 
 int8 menu2_now_page = 0;
 int8 menu2_old_page = -1;
@@ -47,6 +49,8 @@ uint8 menu2_set_num = 0;//默认设置0位  左到右 0 1 2 3 4
 
 static int16 menu2_value =0;
 static uint8 menu2_str[16]={""};
+
+static uint32 heart_beat_men2 =0;
 
 //显示菜单2界面
 void Discrable_Menu2_String(uint8 per)
@@ -170,7 +174,7 @@ void Display_Menu2_Screen()
 				{
 					menu2_value = set_value[menu2_old_page]-My_Pow(10,menu2_set_num);
 				}
-				//Set_Menu2_Value(menu2_old_page,menu2_value);
+				Set_Menu2_Value(menu2_old_page,menu2_value);
 				//Send_To_Client_Packet(40+menu2_old_page,menu2_value);
 				
 			}		
@@ -190,7 +194,8 @@ void Display_Menu2_Screen()
 				else
 				{
 					menu2_value = set_value[menu2_old_page] + My_Pow(10,menu2_set_num);
-				}			
+				}
+				Set_Menu2_Value(menu2_old_page,menu2_value);
 			}
 		}
 		else if(Return_Key_Down())
@@ -205,7 +210,7 @@ void Display_Menu2_Screen()
 			if(!menu2_set)
 			{
 				//保存
-				Send_To_Client_Packet(40+menu2_old_page,menu2_value);
+				Send_To_Client_Packet(50+menu2_old_page,menu2_value);
 			}
 		}
 		else if(Left_Key_Down() && menu2_set && menu2_set_num <4)
@@ -217,8 +222,16 @@ void Display_Menu2_Screen()
 			menu2_set_num--;
 		}
 		Set_Mark();
+		
+		Usart_Update();		
 		if(menu2_now_page == menu2_old_page && menu2_display==1)
 		{
+			//只更新数据
+			if(menu2_value_update)
+			{
+				menu2_value_update =0;
+				Update_Menu2_Value();
+			}
 			continue;
 		}
 		menu2_display = 1;
@@ -228,36 +241,34 @@ void Display_Menu2_Screen()
 		Wr_Command(0x01,1); //显示清屏
 
 		Discrable_Menu2_String(menu2_old_page);	
+
+
 	}
 	menu2_display = 0;
 	menu2_set=0;//退出更改模式到显示模式
 }
 
+void Update_Menu2_Value()
+{
+	uint8 i =0;
+	for(i=0;i<16;i++)
+	{
+		menu2_str[i]=' ';
+	}	
+	menu2_str[5] = set_value[menu2_old_page]%100000/10000+0x30;	
+	menu2_str[6] = set_value[menu2_old_page]%10000/1000+0x30;
+	menu2_str[7] = set_value[menu2_old_page]%1000/100+0x30;
+	menu2_str[8] = set_value[menu2_old_page]%100/10+0x30;
+	menu2_str[9]	='.';	
+	menu2_str[10]	=set_value[menu2_old_page]%10+0x30;
+	Display_String(3,menu2_str);//菜单值
+}
 void Set_Menu2_Value(int8 index,int16 value)
 {
-	index-=40;
+	//index-=40;
 	if(set_value[index] != value)
 	{
 		set_value[index] = value;
-		if(index == menu2_old_page && menu2_display)
-		{
-			for(index=0;index<16;index++)
-			{
-				menu2_str[index]=' ';
-			}
-			if(value <0)
-			{
-				value = 0;
-			}
-			value = abs(value);
-	
-			menu2_str[5] = value%100000/10000+0x30;	
-			menu2_str[6] = value%10000/1000+0x30;
-			menu2_str[7] = value%1000/100+0x30;
-			menu2_str[8] = value%100/10+0x30;
-			menu2_str[9]	='.';	
-			menu2_str[10]	=value%10+0x30;
-			Display_String(3,menu2_str);//菜单值
-		}
+		menu2_value_update = 1;
 	}
 }

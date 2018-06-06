@@ -8,12 +8,12 @@
 #endif
 
 
-void Led_On();
-void Led_Off();
+//void Led_On();
+//void Led_Off();
 void Led_Change();
 void Beep_Change();
 
-int16 my_atoi (int8 s[]);
+int16 my_atoi (char s[]);
 int32 My_Pow(int base, int exponent);
 
 #endif

@@ -19,7 +19,7 @@ void Display_String(uint8 line,uint8 *string);
 void Display_Pic();
 
 void Wr_Data(uint8 wrdata); //Ð´Êý¾Ý
-void Wr_Command(uint8 wrcommand,busyc); //Ð´Ö¸Áî
+void Wr_Command(uint8 wrcommand,uint8 busyc); //Ð´Ö¸Áî
 void RDbf(void);//¶ÁÃ¦×´Ì¬
 void Lcm_Init(void);//Òº¾§³õÊ¼»¯
 void Set_LCMdata(uint8 wrdata);//µ¹Ðò

@@ -4,10 +4,10 @@
 
 //------------------´®¿ÚÍ¨ĞÅĞ­Òé-----------------//
 /*
-    ½ÓÊÕA01_00_0000000#
-		·¢ËÍB01_00_0000000#
+    ½ÓÊÕB01_00_0000000#
+		·¢ËÍA01_00_0000000#
 */
-int8 buf_string[16];  							//·¢ËÍÊı¾İ
+uint8 buf_string[16];  							//½ÓÊÕÊı¾İ
 #define deviceID_1Bit '0'           //ÓÃÓÚ´®¿ÚÍ¨ĞÅÊ±£¬¶¨Òå±¾µØÉè±¸IDµÄµÚ1Î»
 #define deviceID_2Bit '1'           //ÓÃÓÚ´®¿ÚÍ¨ĞÅÊ±£¬¶¨Òå±¾µØÉè±¸IDµÄµÚ2Î»
 #define Service_headflag 'A'        //ÓÃÓÚ´®¿ÚÍ¨ĞÅÊ±£¬¶¨ÒåÊı¾İ°üÍ·²¿µÄÑéÖ¤±ê¼Ç  ±íÊ¾·şÎñÆ÷°ü  ·¢ËÍ¸ø·şÎñÆ÷µÄ
@@ -17,34 +17,21 @@ int8 buf_string[16];  							//·¢ËÍÊı¾İ
 
 //7-13 ÎªÊı¾İ ¾ù*100
 //Êı¾İ-9999.99~+9999.99
-int8 DataPackage[16]={Service_headflag,deviceID_1Bit,deviceID_2Bit,'_','0','1','_','X','X','X','X','X','X','X','#'};
-int8 HeartBeat[16]={Service_headflag,deviceID_1Bit,deviceID_2Bit,'_','B','e','a','t','X','X','X','X','X','X','#'};
+uint8 DataPackage[16]={Service_headflag,deviceID_1Bit,deviceID_2Bit,'_','0','1','_','X','X','X','X','X','X','X','#'};
+uint8 HeartBeat[16]={Service_headflag,deviceID_1Bit,deviceID_2Bit,'_','X','X','_','0','0','0','0','0','0','0','#'};
 
 int16 trans_int;
-int8 trans_str[7];
-//----------------------------------------------//
-//¿Í»§¶Ë°üÃèÊö 10-13  ²ÎÊıÖ»ÓĞ¼Ó(1)¼õ(0)
-/* 
-str == 00  µ±Ç°¹¦ÂÊ
-		== 01  ¹©µçµçÑ¹
-		== 02  ¹©µçµçÁ÷
-		== 03	 ÏßÅÌµçÁ÷
-		== 04  ×î´óµçÁ÷
-		== 05  ÏßÅÌÎÂ¶È
-		== 06  ¹øÄÚÎÂ¶È
-		== 07  IGBTÆµÂÊ
-		== 08  IGBTÎÂ¶È
-		== 09  Ê¹ÓÃÈİÁ¿
-		== 10  »úÆ÷×´Ì¬
+uint8 trans_str[7];
 
+struct FifoQueue usart_queue;//´®¿ÚÍ¨ĞÅ²Ö¿â
 
-str1 == 40 ÃÜÂë
-
-
-
-
-str2 ==80
-*/
+void Usart_Update()
+{
+	if(Take_Queue(&buf_string))
+	{
+		Deal_UART_RecData();
+	}
+}
 void Send_To_Client_Packet(int8 index,int32 num)
 {
 	uint32 buf = abs(num);
@@ -67,32 +54,19 @@ void Send_To_Client_Packet(int8 index,int32 num)
     TI=0;  
 	}
 	ES=1; 
-}                                               
-//´®¿Ú½ÓÊÕº¯Êı
-bit ReceiveServicePacket()    
+}  
+
+void SendHeartBeadPacket()
 {
-    char *RecStr=buf_string;
-    char num=0;
-    unsigned int count=0;
-    loop:    
-    *RecStr=SBUF;
-    count=0;
-    RI=0; 
-    if(num<14)  //Êı¾İ°ü³¤¶ÈÎª15¸ö×Ö·û,³¢ÊÔÁ¬Ğø½ÓÊÕ15¸ö×Ö·û
-    {
-        num++;
-        RecStr++;    
-        while(!RI)
-				{
-            count++;
-            if(count>1000)
-						{
-							return 0;    //½ÓÊÕÊı¾İµÈ´ıÑÓ³Ù£¬µÈ´ıÊ±¼äÌ«¾Ã»áµ¼ÖÂCPUÔËËãÏĞÖÃ£¬Ì«¶Ì»á³öÏÖ"Êı¾İ°ü±»·Ö¸î",Ä¬ÈÏcount=130
-						}
-				}
-        goto loop;
-    }
-    return 1;
+	uint8 i;
+	ES=0; //¹Ø±Õ½ÓÊÕÖĞ¶Ï
+	for(i=0;i<15;i++)
+	{
+		SBUF = HeartBeat[i];
+		while(TI==0);
+    TI=0;  
+	}
+	ES=1; 
 }
 //¶¨Ê±Æ÷1ÓÃ×÷²¨ÌØÂÊ·¢ÉúÆ÷
 void Init_USART()  
@@ -108,19 +82,37 @@ void Init_USART()
     RI=0;
     //PS=1;   //Ìá¸ß´®¿ÚÖĞ¶ÏÓÅÏÈ¼¶
     ES=1;  //¿ªÆô´®¿ÚÖĞ¶ÏÊ¹ÄÜ
+	
+		QueueInit(&usart_queue);
 }
-//±È½ÏÖ¸ÁîÍ·²¿
-bit CompareCMD_head(char CMD_head[])    
+//×°ÈëÊı¾İ
+void Interrupt_Queue(uint8 sbuf)
 {
-    unsigned char CharNum;
-    for(CharNum=0;CharNum<4;CharNum++)  //Ö¸Áî³¤¶ÈÎª10¸ö×Ö·û
-    {
-        if(!(buf_string[CharNum+4]==CMD_head[CharNum]))
-        {
-            return 0;  //Ö¸ÁîÍ·²¿Æ¥ÅäÊ§°Ü
-        }
-    }
-    return 1;        //Ö¸ÁîÍ·²¿Æ¥Åä³É¹¦
+	QueueIn(&usart_queue,sbuf);
+}
+//È¡³öB×Ö¿ªÍ·µÄ15¸öÊı¾İ
+uint8 Take_Queue(uint8 *newchar)
+{
+	uint8 i =0;
+	uint8 temp;
+	if(usart_queue.count < 15)
+	{
+		return 0;//²»×ã15¸öÊı¾İ
+	}
+	while(i<15 && QueueOut(&usart_queue,&temp) != QueueEmpty)
+	{
+		if(temp == Clinet_headflag || i != 0)
+		{
+			send_PC(temp);
+			newchar[i] = temp;
+			i++;
+		}
+	}
+	if(i==15)//È¡ÁËÍêÕûµÄÊı¾İ
+	{
+		return 1;
+	}
+	return 0;
 }
 //±È½ÏÖ¸ÁîÎ²²¿(start:´ÓÄÄÀï¿ªÊ¼±È½Ï£¬quality:±È½Ï¶àÉÙ¸ö×Ö·û£¬CMD_tail[]£ºÒª±È½ÏµÄ×Ö·û´®)
 bit CompareCMD_tail(unsigned char start,unsigned char quality,char CMD_tail[]) 
@@ -150,35 +142,41 @@ bit Deal_UART_RecData()   //´¦Àí´®¿Ú½ÓÊÕÊı¾İ°üº¯Êı£¨³É¹¦´¦ÀíÊı¾İ°üÔò·µ»Ø1£¬·ñÔò·
 //		== 08  IGBTÎÂ¶È
 //		== 09  Ê¹ÓÃÈİÁ¿
 //		== 10  »úÆ÷×´Ì¬
-//	int8 i;
-//	ES=0; //¹Ø±Õ½ÓÊÕÖĞ¶Ï
-//	for(i=0;i<15;i++)
-//	{
-//		SBUF = buf_string[i];
-//		while(TI==0);
-//		TI=0;  
-//	}
-//	ES=1; 
-	send_PC('|');
+//	
+//		== 50   ÊäÈëÃÜÂë
+//		== 51		×î´ó¹¦ÂÊ  
+//		== 52		×î´ó¹©µçµçÑ¹
+//		== 53		×îĞ¡¹©µçµçÑ¹
+//		== 54		×î´óÏßÅÌµçÁ÷
+//		== 55		×î´óÏßÅÌÎÂ¶È
+//		== 56		Í¨ÓÃÏßÅÌÎÂ¶È
+//		== 57		×î´ó¹øÄÚÎÂ¶È		
+//		== 58		×î´óÂ©ÁÏÎÂ¶È	
+//		== 59		×î´óIGBTÆµÂÊ
+//		== 60		×îĞ¡IGBTÆµÂÊ
+//		== 61		×î´óIGBTÎÂ¶È
+//		== 62		ÏŞÖÆ¹¤×÷Ê±¼ä
+//		== 63   ĞŞ¸ÄÃÜÂë  
 	if(buf_string[0]==Clinet_headflag&&buf_string[14]=='#')  //½øĞĞÊı¾İ°üÍ·Î²±ê¼ÇÑéÖ¤
 	{        
-		send_PC('|');
 		if(CompareCMD_tail(1,2,deviceID))
 		{
-			send_PC('|');
 			strncpy(trans_str,buf_string+7,7);
 			trans_int = my_atoi(trans_str);
 			if(CompareCMD_tail(4,2,"00"))			//	  == 00  µ±Ç°¹¦ÂÊ
 			{
 				Set_Menu1_Value(0,trans_int);
+				//send_PC('a');
       }
 			else if(CompareCMD_tail(4,2,"01"))//		== 01  ¹©µçµçÑ¹
 			{
 				Set_Menu1_Value(1,trans_int);
+				//send_PC('b');
 			}
 			else if(CompareCMD_tail(4,2,"02"))//		== 02  ¹©µçµçÁ÷
 			{
 				Set_Menu1_Value(2,trans_int);
+				//send_PC('c');
 			}
 			else if(CompareCMD_tail(4,2,"03"))//		== 03	 ÏßÅÌµçÁ÷
 			{
@@ -212,10 +210,67 @@ bit Deal_UART_RecData()   //´¦Àí´®¿Ú½ÓÊÕÊı¾İ°üº¯Êı£¨³É¹¦´¦ÀíÊı¾İ°üÔò·µ»Ø1£¬·ñÔò·
 			{
 				Set_Menu1_Value(10,trans_int);
 			}
+			else if(CompareCMD_tail(4,2,"50"))//		== 50   ÊäÈëÃÜÂë
+			{
+				Set_Menu2_Value(0,trans_int);														
+			}
+			else if(CompareCMD_tail(4,2,"51"))//		== 51		×î´ó¹¦ÂÊ
+			{
+				Set_Menu2_Value(1,trans_int);																
+			}  
+			else if(CompareCMD_tail(4,2,"52"))//		== 52		×î´ó¹©µçµçÑ¹
+			{
+				Set_Menu2_Value(2,trans_int);	
+			}
+			else if(CompareCMD_tail(4,2,"53"))//		== 53		×îĞ¡¹©µçµçÑ¹
+			{
+				Set_Menu2_Value(3,trans_int);	
+			}
+			else if(CompareCMD_tail(4,2,"54"))//		== 54		×î´óÏßÅÌµçÁ÷
+			{
+				Set_Menu2_Value(4,trans_int);	
+			}
+			else if(CompareCMD_tail(4,2,"55"))//		== 55		×î´óÏßÅÌÎÂ¶È
+			{
+				Set_Menu2_Value(5,trans_int);	
+			}
+			else if(CompareCMD_tail(4,2,"56"))//		== 56		Í¨ÓÃÏßÅÌÎÂ¶È
+			{
+				Set_Menu2_Value(6,trans_int);	
+			}
+			else if(CompareCMD_tail(4,2,"57"))//		== 57		×î´ó¹øÄÚÎÂ¶È
+			{
+				Set_Menu2_Value(7,trans_int);	
+			}				
+			else if(CompareCMD_tail(4,2,"58"))//		== 58		×î´óÂ©ÁÏÎÂ¶È	
+			{
+				Set_Menu2_Value(8,trans_int);	
+			}
+			else if(CompareCMD_tail(4,2,"59"))//		== 59		×î´óIGBTÆµÂÊ
+			{
+				Set_Menu2_Value(9,trans_int);	
+			}
+			else if(CompareCMD_tail(4,2,"60"))//		== 60		×îĞ¡IGBTÆµÂÊ
+			{
+				Set_Menu2_Value(10,trans_int);	
+			}
+			else if(CompareCMD_tail(4,2,"61"))//		== 61		×î´óIGBTÎÂ¶È
+			{
+				Set_Menu2_Value(11,trans_int);	
+			}
+			else if(CompareCMD_tail(4,2,"62"))//		== 62		ÏŞÖÆ¹¤×÷Ê±¼ä
+			{
+				Set_Menu2_Value(12,trans_int);	
+			}
+			else if(CompareCMD_tail(4,2,"63"))//		== 63   »Ö¸´³ö³§ÉèÖÃ
+			{
+				Set_Menu2_Value(13,trans_int);	
+			}				
 		}
 	}
   return 0;
 }
+
 
 void send_PC(int8 ch)
 {

@@ -1,14 +1,14 @@
 #define LED_C_
 #include "led.h"
 
-void Led_On()
-{
-	LED =1;
-}
-void Led_Off()
-{
-	LED=0;
-}
+//void Led_On()
+//{
+//	LED =1;
+//}
+//void Led_Off()
+//{
+//	LED=0;
+//}
 void Led_Change()
 {
 	LED=~LED;
@@ -23,7 +23,7 @@ void Beep_Change()
 	}
 }
 
-int16 my_atoi (const char *str)
+int16 my_atoi (char *str)
 {
 	  int value = 0;
     int flag = 1; //ÅÐ¶Ï·ûºÅ

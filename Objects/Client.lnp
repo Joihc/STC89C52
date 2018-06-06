@@ -9,6 +9,7 @@
 ".\Objects\button.obj",
 ".\Objects\menu1.obj",
 ".\Objects\menu2.obj",
-".\Objects\menu3.obj" 
+".\Objects\menu3.obj",
+".\Objects\queue.obj" 
 TO ".\Objects\Client" 
 PRINT(".\Listings\Client.m51") RAMSIZE(256) 
