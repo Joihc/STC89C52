@@ -1,4 +1,4 @@
-C51 COMPILER V9.57.0.0   MENU1                                                             06/06/2018 15:17:48 PAGE 1   
+C51 COMPILER V9.57.0.0   MENU1                                                             06/07/2018 09:40:57 PAGE 1   
 
 
 C51 COMPILER V9.57.0.0, COMPILATION OF MODULE MENU1
@@ -62,7 +62,7 @@ line level    source
   52   2          value = -9999;
   53   2        }
   54   1        mark = (value<0?1:0);
-C51 COMPILER V9.57.0.0   MENU1                                                             06/06/2018 15:17:48 PAGE 2   
+C51 COMPILER V9.57.0.0   MENU1                                                             06/07/2018 09:40:57 PAGE 2   
 
   55   1        value = abs(value);
   56   1        
@@ -126,7 +126,7 @@ line level    source
  114   2            break;
  115   2          case 7:
  116   2            menu1_str[15] = 'K';
-C51 COMPILER V9.57.0.0   MENU1                                                             06/06/2018 15:17:48 PAGE 3   
+C51 COMPILER V9.57.0.0   MENU1                                                             06/07/2018 09:40:57 PAGE 3   
 
  117   2            break;
  118   2          case 8:
@@ -190,7 +190,7 @@ line level    source
  174   3          }
  175   2          if(menu1_old_page*4+3<MENU1_INDEX)
  176   2          {
-C51 COMPILER V9.57.0.0   MENU1                                                             06/06/2018 15:17:48 PAGE 4   
+C51 COMPILER V9.57.0.0   MENU1                                                             06/07/2018 09:40:57 PAGE 4   
 
  177   3            Discrable_Menu1_String(display_str[menu1_old_page*4+3],display_value[menu1_old_page*4+3],menu1_old_page
              -*4+3);
@@ -254,7 +254,7 @@ line level    source
  235   3              menu1_str[11] = ' ';
  236   3              if(mark)
  237   3              {
-C51 COMPILER V9.57.0.0   MENU1                                                             06/06/2018 15:17:48 PAGE 5   
+C51 COMPILER V9.57.0.0   MENU1                                                             06/07/2018 09:40:57 PAGE 5   
 
  238   4                menu1_str[11] = '-';
  239   4                mark =0;      

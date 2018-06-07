@@ -23,6 +23,8 @@ void main()
 	
 	EA=1;//总中断
 	
+	//请求一次完整包
+	SendHeartBeadPacket();
 	while(1)
 	{
 		Display_Menu1_Screen();//主显示界面

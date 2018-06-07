@@ -1,4 +1,4 @@
-C51 COMPILER V9.57.0.0   USART                                                             06/06/2018 15:17:48 PAGE 1   
+C51 COMPILER V9.57.0.0   USART                                                             06/07/2018 09:40:57 PAGE 1   
 
 
 C51 COMPILER V9.57.0.0, COMPILATION OF MODULE USART
@@ -40,7 +40,7 @@ line level    source
   27          
   28          void Usart_Update()
   29          {
-  30   1        if(Take_Queue(&buf_string))
+  30   1        if(Take_Queue(buf_string))
   31   1        {
   32   2          Deal_UART_RecData();
   33   2        }
@@ -62,7 +62,7 @@ line level    source
   49   1        ES=0; //关闭接收中断
   50   1        for(buf=0;buf<15;buf++)
   51   1        {
-C51 COMPILER V9.57.0.0   USART                                                             06/06/2018 15:17:48 PAGE 2   
+C51 COMPILER V9.57.0.0   USART                                                             06/07/2018 09:40:57 PAGE 2   
 
   52   2          SBUF = DataPackage[buf];
   53   2          while(TI==0);
@@ -118,194 +118,193 @@ line level    source
  103   1        {
  104   2          if(temp == Clinet_headflag || i != 0)
  105   2          {
- 106   3            send_PC(temp);
- 107   3            newchar[i] = temp;
- 108   3            i++;
- 109   3          }
- 110   2        }
- 111   1        if(i==15)//取了完整的数据
- 112   1        {
- 113   2          return 1;
-C51 COMPILER V9.57.0.0   USART                                                             06/06/2018 15:17:48 PAGE 3   
+ 106   3            newchar[i] = temp;
+ 107   3            i++;
+ 108   3          }
+ 109   2        }
+ 110   1        if(i==15)//取了完整的数据
+ 111   1        {
+ 112   2          return 1;
+ 113   2        }
+C51 COMPILER V9.57.0.0   USART                                                             06/07/2018 09:40:57 PAGE 3   
 
- 114   2        }
- 115   1        return 0;
- 116   1      }
- 117          //比较指令尾部(start:从哪里开始比较，quality:比较多少个字符，CMD_tail[]：要比较的字符串)
- 118          bit CompareCMD_tail(unsigned char start,unsigned char quality,char CMD_tail[]) 
- 119          {
- 120   1          unsigned char CharNum;
- 121   1          for(CharNum=0;CharNum<quality;CharNum++)
- 122   1          {
- 123   2              if(!(buf_string[start+CharNum]==CMD_tail[CharNum]))
- 124   2              {
- 125   3                  return 0; 
- 126   3              }
- 127   2          }
- 128   1          return 1;
- 129   1      }
- 130          
- 131          bit Deal_UART_RecData()   //处理串口接收数据包函数（成功处理数据包则返回1，否则返回0）
- 132          { 
- 133   1        //清除发送完成标志位
- 134   1      //    == 00  当前功率
- 135   1      //    == 01  供电电压
- 136   1      //    == 02  供电电流
- 137   1      //    == 03  线盘电流
- 138   1      //    == 04  最大电流
- 139   1      //    == 05  线盘温度
- 140   1      //    == 06  锅内温度
- 141   1      //    == 07  IGBT频率
- 142   1      //    == 08  IGBT温度
- 143   1      //    == 09  使用容量
- 144   1      //    == 10  机器状态
- 145   1      //  
- 146   1      //    == 50   输入密码
- 147   1      //    == 51   最大功率  
- 148   1      //    == 52   最大供电电压
- 149   1      //    == 53   最小供电电压
- 150   1      //    == 54   最大线盘电流
- 151   1      //    == 55   最大线盘温度
- 152   1      //    == 56   通用线盘温度
- 153   1      //    == 57   最大锅内温度    
- 154   1      //    == 58   最大漏料温度  
- 155   1      //    == 59   最大IGBT频率
- 156   1      //    == 60   最小IGBT频率
- 157   1      //    == 61   最大IGBT温度
- 158   1      //    == 62   限制工作时间
- 159   1      //    == 63   修改密码  
- 160   1        if(buf_string[0]==Clinet_headflag&&buf_string[14]=='#')  //进行数据包头尾标记验证
- 161   1        {        
- 162   2          if(CompareCMD_tail(1,2,deviceID))
- 163   2          {
- 164   3            strncpy(trans_str,buf_string+7,7);
- 165   3            trans_int = my_atoi(trans_str);
- 166   3            if(CompareCMD_tail(4,2,"00"))     //    == 00  当前功率
- 167   3            {
- 168   4              Set_Menu1_Value(0,trans_int);
- 169   4              //send_PC('a');
- 170   4            }
- 171   3            else if(CompareCMD_tail(4,2,"01"))//    == 01  供电电压
- 172   3            {
- 173   4              Set_Menu1_Value(1,trans_int);
- 174   4              //send_PC('b');
- 175   4            }
-C51 COMPILER V9.57.0.0   USART                                                             06/06/2018 15:17:48 PAGE 4   
+ 114   1        return 0;
+ 115   1      }
+ 116          //比较指令尾部(start:从哪里开始比较，quality:比较多少个字符，CMD_tail[]：要比较的字符串)
+ 117          bit CompareCMD_tail(unsigned char start,unsigned char quality,char CMD_tail[]) 
+ 118          {
+ 119   1          unsigned char CharNum;
+ 120   1          for(CharNum=0;CharNum<quality;CharNum++)
+ 121   1          {
+ 122   2              if(!(buf_string[start+CharNum]==CMD_tail[CharNum]))
+ 123   2              {
+ 124   3                  return 0; 
+ 125   3              }
+ 126   2          }
+ 127   1          return 1;
+ 128   1      }
+ 129          
+ 130          bit Deal_UART_RecData()   //处理串口接收数据包函数（成功处理数据包则返回1，否则返回0）
+ 131          { 
+ 132   1        //清除发送完成标志位
+ 133   1      //    == 00  当前功率
+ 134   1      //    == 01  供电电压
+ 135   1      //    == 02  供电电流
+ 136   1      //    == 03  线盘电流
+ 137   1      //    == 04  最大电流
+ 138   1      //    == 05  线盘温度
+ 139   1      //    == 06  锅内温度
+ 140   1      //    == 07  IGBT频率
+ 141   1      //    == 08  IGBT温度
+ 142   1      //    == 09  使用容量
+ 143   1      //    == 10  机器状态
+ 144   1      //  
+ 145   1      //    == 50   输入密码
+ 146   1      //    == 51   最大功率  
+ 147   1      //    == 52   最大供电电压
+ 148   1      //    == 53   最小供电电压
+ 149   1      //    == 54   最大线盘电流
+ 150   1      //    == 55   最大线盘温度
+ 151   1      //    == 56   通用线盘温度
+ 152   1      //    == 57   最大锅内温度    
+ 153   1      //    == 58   最大漏料温度  
+ 154   1      //    == 59   最大IGBT频率
+ 155   1      //    == 60   最小IGBT频率
+ 156   1      //    == 61   最大IGBT温度
+ 157   1      //    == 62   限制工作时间
+ 158   1      //    == 63   修改密码  
+ 159   1        if(buf_string[0]==Clinet_headflag&&buf_string[14]=='#')  //进行数据包头尾标记验证
+ 160   1        {        
+ 161   2          if(CompareCMD_tail(1,2,deviceID))
+ 162   2          {
+ 163   3            strncpy(trans_str,buf_string+7,7);
+ 164   3            trans_int = my_atoi(trans_str);
+ 165   3            if(CompareCMD_tail(4,2,"00"))     //    == 00  当前功率
+ 166   3            {
+ 167   4              Set_Menu1_Value(0,trans_int);
+ 168   4              //send_PC('a');
+ 169   4            }
+ 170   3            else if(CompareCMD_tail(4,2,"01"))//    == 01  供电电压
+ 171   3            {
+ 172   4              Set_Menu1_Value(1,trans_int);
+ 173   4              //send_PC('b');
+ 174   4            }
+ 175   3            else if(CompareCMD_tail(4,2,"02"))//    == 02  供电电流
+C51 COMPILER V9.57.0.0   USART                                                             06/07/2018 09:40:57 PAGE 4   
 
- 176   3            else if(CompareCMD_tail(4,2,"02"))//    == 02  供电电流
- 177   3            {
- 178   4              Set_Menu1_Value(2,trans_int);
- 179   4              //send_PC('c');
- 180   4            }
- 181   3            else if(CompareCMD_tail(4,2,"03"))//    == 03  线盘电流
- 182   3            {
- 183   4              Set_Menu1_Value(3,trans_int);
- 184   4            }
- 185   3            else if(CompareCMD_tail(4,2,"04"))//    == 04  最大电流
- 186   3            {
- 187   4              Set_Menu1_Value(4,trans_int);
- 188   4            }
- 189   3            else if(CompareCMD_tail(4,2,"05"))//    == 05  线盘温度
- 190   3            {
- 191   4              Set_Menu1_Value(5,trans_int);
- 192   4            }
- 193   3            else if(CompareCMD_tail(4,2,"06"))//    == 06  锅内温度
- 194   3            {
- 195   4              Set_Menu1_Value(6,trans_int);
- 196   4            }
- 197   3            else if(CompareCMD_tail(4,2,"07"))//    == 07  IGBT频率
- 198   3            {
- 199   4              Set_Menu1_Value(7,trans_int);
- 200   4            }
- 201   3            else if(CompareCMD_tail(4,2,"08"))//    == 08  IGBT温度
- 202   3            {
- 203   4              Set_Menu1_Value(8,trans_int);
- 204   4            }
- 205   3            else if(CompareCMD_tail(4,2,"09"))//    == 09  使用容量
- 206   3            {
- 207   4              Set_Menu1_Value(9,trans_int);
- 208   4            }
- 209   3            else if(CompareCMD_tail(4,2,"10"))//    == 10  机器状态
- 210   3            {
- 211   4              Set_Menu1_Value(10,trans_int);
- 212   4            }
- 213   3            else if(CompareCMD_tail(4,2,"50"))//    == 50   输入密码
- 214   3            {
- 215   4              Set_Menu2_Value(0,trans_int);                           
- 216   4            }
- 217   3            else if(CompareCMD_tail(4,2,"51"))//    == 51   最大功率
- 218   3            {
- 219   4              Set_Menu2_Value(1,trans_int);                               
- 220   4            }  
- 221   3            else if(CompareCMD_tail(4,2,"52"))//    == 52   最大供电电压
- 222   3            {
- 223   4              Set_Menu2_Value(2,trans_int); 
- 224   4            }
- 225   3            else if(CompareCMD_tail(4,2,"53"))//    == 53   最小供电电压
- 226   3            {
- 227   4              Set_Menu2_Value(3,trans_int); 
- 228   4            }
- 229   3            else if(CompareCMD_tail(4,2,"54"))//    == 54   最大线盘电流
- 230   3            {
- 231   4              Set_Menu2_Value(4,trans_int); 
- 232   4            }
- 233   3            else if(CompareCMD_tail(4,2,"55"))//    == 55   最大线盘温度
- 234   3            {
- 235   4              Set_Menu2_Value(5,trans_int); 
- 236   4            }
- 237   3            else if(CompareCMD_tail(4,2,"56"))//    == 56   通用线盘温度
-C51 COMPILER V9.57.0.0   USART                                                             06/06/2018 15:17:48 PAGE 5   
+ 176   3            {
+ 177   4              Set_Menu1_Value(2,trans_int);
+ 178   4              //send_PC('c');
+ 179   4            }
+ 180   3            else if(CompareCMD_tail(4,2,"03"))//    == 03  线盘电流
+ 181   3            {
+ 182   4              Set_Menu1_Value(3,trans_int);
+ 183   4            }
+ 184   3            else if(CompareCMD_tail(4,2,"04"))//    == 04  最大电流
+ 185   3            {
+ 186   4              Set_Menu1_Value(4,trans_int);
+ 187   4            }
+ 188   3            else if(CompareCMD_tail(4,2,"05"))//    == 05  线盘温度
+ 189   3            {
+ 190   4              Set_Menu1_Value(5,trans_int);
+ 191   4            }
+ 192   3            else if(CompareCMD_tail(4,2,"06"))//    == 06  锅内温度
+ 193   3            {
+ 194   4              Set_Menu1_Value(6,trans_int);
+ 195   4            }
+ 196   3            else if(CompareCMD_tail(4,2,"07"))//    == 07  IGBT频率
+ 197   3            {
+ 198   4              Set_Menu1_Value(7,trans_int);
+ 199   4            }
+ 200   3            else if(CompareCMD_tail(4,2,"08"))//    == 08  IGBT温度
+ 201   3            {
+ 202   4              Set_Menu1_Value(8,trans_int);
+ 203   4            }
+ 204   3            else if(CompareCMD_tail(4,2,"09"))//    == 09  使用容量
+ 205   3            {
+ 206   4              Set_Menu1_Value(9,trans_int);
+ 207   4            }
+ 208   3            else if(CompareCMD_tail(4,2,"10"))//    == 10  机器状态
+ 209   3            {
+ 210   4              Set_Menu1_Value(10,trans_int);
+ 211   4            }
+ 212   3            else if(CompareCMD_tail(4,2,"50"))//    == 50   输入密码
+ 213   3            {
+ 214   4              Set_Menu2_Value(0,trans_int);                           
+ 215   4            }
+ 216   3            else if(CompareCMD_tail(4,2,"51"))//    == 51   最大功率
+ 217   3            {
+ 218   4              Set_Menu2_Value(1,trans_int);                               
+ 219   4            }  
+ 220   3            else if(CompareCMD_tail(4,2,"52"))//    == 52   最大供电电压
+ 221   3            {
+ 222   4              Set_Menu2_Value(2,trans_int); 
+ 223   4            }
+ 224   3            else if(CompareCMD_tail(4,2,"53"))//    == 53   最小供电电压
+ 225   3            {
+ 226   4              Set_Menu2_Value(3,trans_int); 
+ 227   4            }
+ 228   3            else if(CompareCMD_tail(4,2,"54"))//    == 54   最大线盘电流
+ 229   3            {
+ 230   4              Set_Menu2_Value(4,trans_int); 
+ 231   4            }
+ 232   3            else if(CompareCMD_tail(4,2,"55"))//    == 55   最大线盘温度
+ 233   3            {
+ 234   4              Set_Menu2_Value(5,trans_int); 
+ 235   4            }
+ 236   3            else if(CompareCMD_tail(4,2,"56"))//    == 56   通用线盘温度
+ 237   3            {
+C51 COMPILER V9.57.0.0   USART                                                             06/07/2018 09:40:57 PAGE 5   
 
- 238   3            {
- 239   4              Set_Menu2_Value(6,trans_int); 
- 240   4            }
- 241   3            else if(CompareCMD_tail(4,2,"57"))//    == 57   最大锅内温度
- 242   3            {
- 243   4              Set_Menu2_Value(7,trans_int); 
- 244   4            }       
- 245   3            else if(CompareCMD_tail(4,2,"58"))//    == 58   最大漏料温度  
- 246   3            {
- 247   4              Set_Menu2_Value(8,trans_int); 
- 248   4            }
- 249   3            else if(CompareCMD_tail(4,2,"59"))//    == 59   最大IGBT频率
- 250   3            {
- 251   4              Set_Menu2_Value(9,trans_int); 
- 252   4            }
- 253   3            else if(CompareCMD_tail(4,2,"60"))//    == 60   最小IGBT频率
- 254   3            {
- 255   4              Set_Menu2_Value(10,trans_int);  
- 256   4            }
- 257   3            else if(CompareCMD_tail(4,2,"61"))//    == 61   最大IGBT温度
- 258   3            {
- 259   4              Set_Menu2_Value(11,trans_int);  
- 260   4            }
- 261   3            else if(CompareCMD_tail(4,2,"62"))//    == 62   限制工作时间
- 262   3            {
- 263   4              Set_Menu2_Value(12,trans_int);  
- 264   4            }
- 265   3            else if(CompareCMD_tail(4,2,"63"))//    == 63   恢复出厂设置
- 266   3            {
- 267   4              Set_Menu2_Value(13,trans_int);  
- 268   4            }       
- 269   3          }
- 270   2        }
- 271   1        return 0;
- 272   1      }
+ 238   4              Set_Menu2_Value(6,trans_int); 
+ 239   4            }
+ 240   3            else if(CompareCMD_tail(4,2,"57"))//    == 57   最大锅内温度
+ 241   3            {
+ 242   4              Set_Menu2_Value(7,trans_int); 
+ 243   4            }       
+ 244   3            else if(CompareCMD_tail(4,2,"58"))//    == 58   最大漏料温度  
+ 245   3            {
+ 246   4              Set_Menu2_Value(8,trans_int); 
+ 247   4            }
+ 248   3            else if(CompareCMD_tail(4,2,"59"))//    == 59   最大IGBT频率
+ 249   3            {
+ 250   4              Set_Menu2_Value(9,trans_int); 
+ 251   4            }
+ 252   3            else if(CompareCMD_tail(4,2,"60"))//    == 60   最小IGBT频率
+ 253   3            {
+ 254   4              Set_Menu2_Value(10,trans_int);  
+ 255   4            }
+ 256   3            else if(CompareCMD_tail(4,2,"61"))//    == 61   最大IGBT温度
+ 257   3            {
+ 258   4              Set_Menu2_Value(11,trans_int);  
+ 259   4            }
+ 260   3            else if(CompareCMD_tail(4,2,"62"))//    == 62   限制工作时间
+ 261   3            {
+ 262   4              Set_Menu2_Value(12,trans_int);  
+ 263   4            }
+ 264   3            else if(CompareCMD_tail(4,2,"63"))//    == 63   恢复出厂设置
+ 265   3            {
+ 266   4              Set_Menu2_Value(13,trans_int);  
+ 267   4            }       
+ 268   3          }
+ 269   2        }
+ 270   1        return 0;
+ 271   1      }
+ 272          
  273          
- 274          
- 275          void send_PC(int8 ch)
- 276          {
- 277   1          SBUF = ch;
- 278   1          while(TI==0);
- 279   1          TI=0;
- 280   1      }
+ 274          void send_PC(int8 ch)
+ 275          {
+ 276   1          SBUF = ch;
+ 277   1          while(TI==0);
+ 278   1          TI=0;
+ 279   1      }
+ 280          
  281          
  282          
- 283          
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1300    ----
+   CODE SIZE        =   1292    ----
    CONSTANT SIZE    =     75    ----
    XDATA SIZE       =    123      19
    PDATA SIZE       =   ----    ----

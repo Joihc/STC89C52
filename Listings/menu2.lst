@@ -1,4 +1,4 @@
-C51 COMPILER V9.57.0.0   MENU2                                                             06/06/2018 15:17:48 PAGE 1   
+C51 COMPILER V9.57.0.0   MENU2                                                             06/07/2018 09:40:57 PAGE 1   
 
 
 C51 COMPILER V9.57.0.0, COMPILATION OF MODULE MENU2
@@ -62,7 +62,7 @@ line level    source
   52          
   53          static uint32 heart_beat_men2 =0;
   54          
-C51 COMPILER V9.57.0.0   MENU2                                                             06/06/2018 15:17:48 PAGE 2   
+C51 COMPILER V9.57.0.0   MENU2                                                             06/07/2018 09:40:57 PAGE 2   
 
   55          //显示菜单2界面
   56          void Discrable_Menu2_String(uint8 per)
@@ -126,7 +126,7 @@ line level    source
  114   3                menu2_str[8]=0x18;
  115   3                break;
  116   3              case 2:
-C51 COMPILER V9.57.0.0   MENU2                                                             06/06/2018 15:17:48 PAGE 3   
+C51 COMPILER V9.57.0.0   MENU2                                                             06/07/2018 09:40:57 PAGE 3   
 
  117   3                menu2_str[7]=0x18;
  118   3                break;
@@ -190,7 +190,7 @@ line level    source
  176   5              }
  177   4              Set_Menu2_Value(menu2_old_page,menu2_value);
  178   4              //Send_To_Client_Packet(40+menu2_old_page,menu2_value);
-C51 COMPILER V9.57.0.0   MENU2                                                             06/06/2018 15:17:48 PAGE 4   
+C51 COMPILER V9.57.0.0   MENU2                                                             06/07/2018 09:40:57 PAGE 4   
 
  179   4              
  180   4            }   
@@ -254,7 +254,7 @@ line level    source
  238   2          
  239   2          menu2_old_page = menu2_now_page;
  240   2          
-C51 COMPILER V9.57.0.0   MENU2                                                             06/06/2018 15:17:48 PAGE 5   
+C51 COMPILER V9.57.0.0   MENU2                                                             06/07/2018 09:40:57 PAGE 5   
 
  241   2          Wr_Command(0x01,1); //显示清屏
  242   2      

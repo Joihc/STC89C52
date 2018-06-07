@@ -27,7 +27,7 @@ struct FifoQueue usart_queue;//´®¿ÚÍ¨ÐÅ²Ö¿â
 
 void Usart_Update()
 {
-	if(Take_Queue(&buf_string))
+	if(Take_Queue(buf_string))
 	{
 		Deal_UART_RecData();
 	}
@@ -103,7 +103,6 @@ uint8 Take_Queue(uint8 *newchar)
 	{
 		if(temp == Clinet_headflag || i != 0)
 		{
-			send_PC(temp);
 			newchar[i] = temp;
 			i++;
 		}

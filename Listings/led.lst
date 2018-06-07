@@ -1,4 +1,4 @@
-C51 COMPILER V9.57.0.0   LED                                                               06/06/2018 15:17:47 PAGE 1   
+C51 COMPILER V9.57.0.0   LED                                                               06/07/2018 09:40:56 PAGE 1   
 
 
 C51 COMPILER V9.57.0.0, COMPILATION OF MODULE LED
@@ -62,7 +62,7 @@ line level    source
   52   1          if (*str > '9' || *str < '0') 
   53   1          {
   54   2              return 0;    
-C51 COMPILER V9.57.0.0   LED                                                               06/06/2018 15:17:47 PAGE 2   
+C51 COMPILER V9.57.0.0   LED                                                               06/07/2018 09:40:56 PAGE 2   
 
   55   2          }
   56   1      
