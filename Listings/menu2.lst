@@ -1,4 +1,4 @@
-C51 COMPILER V9.57.0.0   MENU2                                                             06/07/2018 09:40:57 PAGE 1   
+C51 COMPILER V9.57.0.0   MENU2                                                             06/22/2018 16:51:28 PAGE 1   
 
 
 C51 COMPILER V9.57.0.0, COMPILATION OF MODULE MENU2
@@ -12,26 +12,26 @@ line level    source
    2          #include "menu2.h"
    3          
    4          
-   5          #define MENU2_INDEX 14
+   5          #define MENU2_INDEX 11
    6          #define MENU2_NUM 12
    7          uint8  code set_str[MENU2_INDEX][MENU2_NUM] = {
    8            {"  输入密码  "},
    9            {"  最大功率  "},
-  10            {"最大供电电压"},
-  11            {"最小供电电压"},
-  12            {"最大线盘电流"},
-  13            {"最大线盘温度"},
-  14            {"通用线盘温度"},
-  15            {"最大锅内温度"},   
-  16            {"最大漏料温度"}, 
-  17            {"最大IGBT频率"},
-  18            {"最小IGBT频率"},
-  19            {"最大IGBT温度"},
-  20            {"限制工作时间"},
-  21            {"恢复出厂设置"},
-  22          };
-  23          
-  24          static int16 set_value[MENU2_INDEX]={
+  10            {"最大线盘电流"},
+  11            {"最大线盘温度"},
+  12            {"最大锅内温度"},   
+  13            {"最大漏料温度"}, 
+  14            {"最大IGBT频率"},
+  15            {"最小IGBT频率"},
+  16            {"最大IGBT温度"},
+  17            {"限制工作时间"},
+  18            {"恢复出厂设置"},
+  19          };
+  20          
+  21          static int16 set_value[MENU2_INDEX]={
+  22            0,
+  23            0,
+  24            0,
   25            0,
   26            0,
   27            0,
@@ -40,262 +40,264 @@ line level    source
   30            0,
   31            0,
   32            0,
-  33            0,
-  34            0,
-  35            0,
-  36            0,
-  37            0,
-  38            0,
-  39          };
-  40          
-  41          bit menu2_value_update = 0;
+  33          };
+  34          
+  35          static int16 set_view_value =0;
+  36          
+  37          bit menu2_value_update = 0;
+  38          
+  39          int8 menu2_now_page = 0;
+  40          int8 menu2_old_page = -1;
+  41          bit menu2_display =0;
   42          
-  43          int8 menu2_now_page = 0;
-  44          int8 menu2_old_page = -1;
-  45          bit menu2_display =0;
-  46          
-  47          bit menu2_set =0;//在设置状态
-  48          uint8 menu2_set_num = 0;//默认设置0位  左到右 0 1 2 3 4
+  43          bit menu2_set =0;//在设置状态
+  44          uint8 menu2_set_num = 0;//默认设置0位  左到右 0 1 2 3 4
+  45          
+  46          static uint8 menu2_str[16]={""};
+  47          
+  48          static uint32 heart_beat_men2 =0;
   49          
-  50          static int16 menu2_value =0;
-  51          static uint8 menu2_str[16]={""};
-  52          
-  53          static uint32 heart_beat_men2 =0;
-  54          
-C51 COMPILER V9.57.0.0   MENU2                                                             06/07/2018 09:40:57 PAGE 2   
+  50          //显示菜单2界面
+  51          void Discrable_Menu2_String(uint8 per)
+  52          {
+  53   1        uint8 mark;
+  54   1        int16 value = set_value[per];
+C51 COMPILER V9.57.0.0   MENU2                                                             06/22/2018 16:51:28 PAGE 2   
 
-  55          //显示菜单2界面
-  56          void Discrable_Menu2_String(uint8 per)
-  57          {
-  58   1        uint8 mark;
-  59   1        int16 value = set_value[per];
-  60   1        for(mark=0;mark<16;mark++)
-  61   1        {
-  62   2          menu2_str[mark]=' ';
-  63   2        }
-  64   1        for(mark=2;mark<14;mark++)
-  65   1        {
-  66   2          menu2_str[mark]=set_str[per][mark-2];
-  67   2        }
-  68   1        Display_String(1,menu2_str);//菜单头
-  69   1        
-  70   1        for(mark=0;mark<16;mark++)
-  71   1        {
-  72   2          menu2_str[mark]=' ';
-  73   2        }
-  74   1        if(value <0)
-  75   1        {
-  76   2          value = 0;
-  77   2        }
-  78   1        //mark = (value<0?1:0);
-  79   1        value = abs(value);
-  80   1        
-  81   1      //  menu2_str[0]='<';
-  82   1      //  menu2_str[1]='<';
-  83   1      //  menu2_str[2]='<';
-  84   1      //  menu2_str[3]='<';
-  85   1      //  menu2_str[4]='<';
-  86   1        menu2_str[5] = value%100000/10000+0x30; 
-  87   1        menu2_str[6] = value%10000/1000+0x30;
-  88   1        menu2_str[7] = value%1000/100+0x30;
-  89   1        menu2_str[8] = value%100/10+0x30;
-  90   1        menu2_str[9]  ='.'; 
-  91   1        menu2_str[10] =value%10+0x30;
-  92   1      //  menu2_str[11]='>';
-  93   1      //  menu2_str[12]='>';
-  94   1      //  menu2_str[13]='>';
-  95   1      //  menu2_str[14]='>';
-  96   1      //  menu2_str[15]='>';
-  97   1        Display_String(3,menu2_str);//菜单值
-  98   1      }
-  99          void Set_Mark()
- 100          {
- 101   1        uint8 mark;
- 102   1        for(mark=0;mark<16;mark++)
- 103   1          {
- 104   2            menu2_str[mark]=' ';
- 105   2          }
- 106   1          if(menu2_set)
- 107   1          {
- 108   2            switch(menu2_set_num)
- 109   2            {
- 110   3              case 0:
- 111   3                menu2_str[10]=0x18;
- 112   3                break;
- 113   3              case 1:
- 114   3                menu2_str[8]=0x18;
- 115   3                break;
- 116   3              case 2:
-C51 COMPILER V9.57.0.0   MENU2                                                             06/07/2018 09:40:57 PAGE 3   
+  55   1        
+  56   1        set_view_value = set_value[per];//保存显示的数据
+  57   1        
+  58   1        for(mark=0;mark<16;mark++)
+  59   1        {
+  60   2          menu2_str[mark]=' ';
+  61   2        }
+  62   1        for(mark=2;mark<14;mark++)
+  63   1        {
+  64   2          menu2_str[mark]=set_str[per][mark-2];
+  65   2        }
+  66   1        Display_String(1,menu2_str);//菜单头
+  67   1        
+  68   1        for(mark=0;mark<16;mark++)
+  69   1        {
+  70   2          menu2_str[mark]=' ';
+  71   2        }
+  72   1        if(value <0)
+  73   1        {
+  74   2          value = 0;
+  75   2        }
+  76   1        //mark = (value<0?1:0);
+  77   1        value = abs(value);
+  78   1        
+  79   1      //  menu2_str[0]='<';
+  80   1      //  menu2_str[1]='<';
+  81   1      //  menu2_str[2]='<';
+  82   1      //  menu2_str[3]='<';
+  83   1      //  menu2_str[4]='<';
+  84   1        menu2_str[5] = value%100000/10000+0x30; 
+  85   1        menu2_str[6] = value%10000/1000+0x30;
+  86   1        menu2_str[7] = value%1000/100+0x30;
+  87   1        menu2_str[8] = value%100/10+0x30;
+  88   1        menu2_str[9]  ='.'; 
+  89   1        menu2_str[10] =value%10+0x30;
+  90   1      //  menu2_str[11]='>';
+  91   1      //  menu2_str[12]='>';
+  92   1      //  menu2_str[13]='>';
+  93   1      //  menu2_str[14]='>';
+  94   1      //  menu2_str[15]='>';
+  95   1        Display_String(3,menu2_str);//菜单值
+  96   1      }
+  97          void Set_Mark()
+  98          {
+  99   1        uint8 mark;
+ 100   1        for(mark=0;mark<16;mark++)
+ 101   1          {
+ 102   2            menu2_str[mark]=' ';
+ 103   2          }
+ 104   1          if(menu2_set)
+ 105   1          {
+ 106   2            switch(menu2_set_num)
+ 107   2            {
+ 108   3              case 0:
+ 109   3                menu2_str[10]=0x18;
+ 110   3                break;
+ 111   3              case 1:
+ 112   3                menu2_str[8]=0x18;
+ 113   3                break;
+ 114   3              case 2:
+ 115   3                menu2_str[7]=0x18;
+ 116   3                break;
+C51 COMPILER V9.57.0.0   MENU2                                                             06/22/2018 16:51:28 PAGE 3   
 
- 117   3                menu2_str[7]=0x18;
- 118   3                break;
- 119   3              case 3:
- 120   3                menu2_str[6]=0x18;
- 121   3                break;
- 122   3              case 4:
- 123   3                menu2_str[5]=0x18;
- 124   3                break;
- 125   3            }
- 126   2          }
- 127   1          Display_String(2,menu2_str);//菜单值
- 128   1          for(mark=0;mark<16;mark++)
- 129   1          {
- 130   2            menu2_str[mark]=' ';
- 131   2          }
- 132   1          if(menu2_set)
- 133   1          {
- 134   2            switch(menu2_set_num)
- 135   2            {
- 136   3              case 0:
- 137   3                menu2_str[10]=0x19;
- 138   3                break;
- 139   3              case 1:
- 140   3                menu2_str[8]=0x19;
- 141   3                break;
- 142   3              case 2:
- 143   3                menu2_str[7]=0x19;
- 144   3                break;
- 145   3              case 3:
- 146   3                menu2_str[6]=0x19;
- 147   3                break;
- 148   3              case 4:
- 149   3                menu2_str[5]=0x19;
- 150   3                break;
- 151   3            }
- 152   2          }
- 153   1          Display_String(4,menu2_str);//菜单值
- 154   1      }
- 155          
- 156          //返回多少页 0 1 2 3
- 157          void Display_Menu2_Screen()
- 158          {
- 159   1        while(1)
- 160   1        {
- 161   2          if(Down_Key_Down())
- 162   2          {
- 163   3            if(menu2_old_page < MENU2_INDEX-1 && !menu2_set)
- 164   3            {
- 165   4              menu2_now_page++;
- 166   4            }
- 167   3            else if(menu2_set)
- 168   3            {
- 169   4              if(set_value[menu2_old_page]-My_Pow(10,menu2_set_num)<0)
- 170   4              {
- 171   5                menu2_value =0;
- 172   5              }
- 173   4              else
- 174   4              {
- 175   5                menu2_value = set_value[menu2_old_page]-My_Pow(10,menu2_set_num);
- 176   5              }
- 177   4              Set_Menu2_Value(menu2_old_page,menu2_value);
- 178   4              //Send_To_Client_Packet(40+menu2_old_page,menu2_value);
-C51 COMPILER V9.57.0.0   MENU2                                                             06/07/2018 09:40:57 PAGE 4   
+ 117   3              case 3:
+ 118   3                menu2_str[6]=0x18;
+ 119   3                break;
+ 120   3              case 4:
+ 121   3                menu2_str[5]=0x18;
+ 122   3                break;
+ 123   3            }
+ 124   2          }
+ 125   1          Display_String(2,menu2_str);//菜单值
+ 126   1          for(mark=0;mark<16;mark++)
+ 127   1          {
+ 128   2            menu2_str[mark]=' ';
+ 129   2          }
+ 130   1          if(menu2_set)
+ 131   1          {
+ 132   2            switch(menu2_set_num)
+ 133   2            {
+ 134   3              case 0:
+ 135   3                menu2_str[10]=0x19;
+ 136   3                break;
+ 137   3              case 1:
+ 138   3                menu2_str[8]=0x19;
+ 139   3                break;
+ 140   3              case 2:
+ 141   3                menu2_str[7]=0x19;
+ 142   3                break;
+ 143   3              case 3:
+ 144   3                menu2_str[6]=0x19;
+ 145   3                break;
+ 146   3              case 4:
+ 147   3                menu2_str[5]=0x19;
+ 148   3                break;
+ 149   3            }
+ 150   2          }
+ 151   1          Display_String(4,menu2_str);//菜单值
+ 152   1      }
+ 153          
+ 154          //返回多少页 0 1 2 3
+ 155          void Display_Menu2_Screen()
+ 156          {
+ 157   1        while(1)
+ 158   1        {
+ 159   2          if(Down_Key_Down())
+ 160   2          {
+ 161   3            if(menu2_old_page < MENU2_INDEX-1 && !menu2_set)
+ 162   3            {
+ 163   4              menu2_now_page++;
+ 164   4            }
+ 165   3            else if(menu2_set)
+ 166   3            {
+ 167   4              if(set_view_value-My_Pow(10,menu2_set_num)<0)
+ 168   4              {
+ 169   5                set_view_value =0;
+ 170   5              }
+ 171   4              else
+ 172   4              {
+ 173   5                set_view_value -= My_Pow(10,menu2_set_num);
+ 174   5              }
+ 175   4              menu2_value_update = 1;
+ 176   4              
+ 177   4            }   
+ 178   3          }
+C51 COMPILER V9.57.0.0   MENU2                                                             06/22/2018 16:51:28 PAGE 4   
 
- 179   4              
- 180   4            }   
- 181   3          }
- 182   2          else if(Up_Key_Down())
- 183   2          {
- 184   3            if(menu2_old_page >0 && !menu2_set)
- 185   3            {
- 186   4              menu2_now_page--;
- 187   4            }
- 188   3            else if(menu2_set)
- 189   3            {
- 190   4              if(set_value[menu2_old_page] + My_Pow(10,menu2_set_num) > 32767)
- 191   4              {
- 192   5                menu2_value = 32767;
- 193   5              }
- 194   4              else
- 195   4              {
- 196   5                menu2_value = set_value[menu2_old_page] + My_Pow(10,menu2_set_num);
- 197   5              }
- 198   4              Set_Menu2_Value(menu2_old_page,menu2_value);
- 199   4            }
- 200   3          }
- 201   2          else if(Return_Key_Down())
- 202   2          {
- 203   3            break;
- 204   3          }   
- 205   2          else if(Ok_Key_Down())
- 206   2          {
- 207   3            //send_PC('A');
- 208   3            menu2_set= ~menu2_set;
- 209   3            menu2_set_num =4;//切换一次就把设置位归零
- 210   3            if(!menu2_set)
- 211   3            {
- 212   4              //保存
- 213   4              Send_To_Client_Packet(50+menu2_old_page,menu2_value);
- 214   4            }
- 215   3          }
- 216   2          else if(Left_Key_Down() && menu2_set && menu2_set_num <4)
- 217   2          {
- 218   3            menu2_set_num++;
- 219   3          }
- 220   2          else if(Right_Key_Down() && menu2_set && menu2_set_num >0)
- 221   2          {
- 222   3            menu2_set_num--;
- 223   3          }
- 224   2          Set_Mark();
- 225   2          
- 226   2          Usart_Update();   
- 227   2          if(menu2_now_page == menu2_old_page && menu2_display==1)
- 228   2          {
- 229   3            //只更新数据
- 230   3            if(menu2_value_update)
- 231   3            {
- 232   4              menu2_value_update =0;
- 233   4              Update_Menu2_Value();
- 234   4            }
- 235   3            continue;
- 236   3          }
- 237   2          menu2_display = 1;
- 238   2          
- 239   2          menu2_old_page = menu2_now_page;
- 240   2          
-C51 COMPILER V9.57.0.0   MENU2                                                             06/07/2018 09:40:57 PAGE 5   
+ 179   2          else if(Up_Key_Down())
+ 180   2          {
+ 181   3            if(menu2_old_page >0 && !menu2_set)
+ 182   3            {
+ 183   4              menu2_now_page--;
+ 184   4            }
+ 185   3            else if(menu2_set)
+ 186   3            {
+ 187   4              if(set_view_value + My_Pow(10,menu2_set_num) > 32767)
+ 188   4              {
+ 189   5                set_view_value = 32767;
+ 190   5              }
+ 191   4              else
+ 192   4              {
+ 193   5                set_view_value += My_Pow(10,menu2_set_num);
+ 194   5              }
+ 195   4              menu2_value_update = 1;
+ 196   4            }
+ 197   3          }
+ 198   2          else if(Return_Key_Down())
+ 199   2          {
+ 200   3            break;
+ 201   3          }   
+ 202   2          else if(Ok_Key_Down())
+ 203   2          {
+ 204   3            //send_PC('A');
+ 205   3            menu2_set= ~menu2_set;
+ 206   3            menu2_set_num =4;//切换一次就把设置位归零
+ 207   3            if(!menu2_set)
+ 208   3            {
+ 209   4              //保存
+ 210   4              Send_To_Client_Packet(50+menu2_old_page,set_view_value);
+ 211   4            }
+ 212   3          }
+ 213   2          else if(Left_Key_Down() && menu2_set && menu2_set_num <4)
+ 214   2          {
+ 215   3            menu2_set_num++;
+ 216   3          }
+ 217   2          else if(Right_Key_Down() && menu2_set && menu2_set_num >0)
+ 218   2          {
+ 219   3            menu2_set_num--;
+ 220   3          }
+ 221   2          Set_Mark();
+ 222   2          
+ 223   2          Usart_Update(); 
+ 224   2          if(!menu2_set && set_view_value !=set_value[menu2_old_page] )
+ 225   2          {
+ 226   3            set_view_value = set_value[menu2_old_page];
+ 227   3            menu2_value_update = 1;
+ 228   3          }     
+ 229   2          if(menu2_now_page == menu2_old_page && menu2_display==1)
+ 230   2          {
+ 231   3            //只更新数据
+ 232   3            if(menu2_value_update)
+ 233   3            {
+ 234   4              menu2_value_update =0;
+ 235   4              Update_Menu2_Value();
+ 236   4            }
+ 237   3      //      if(!menu2_set && set_value[menu2_old_page]!=set_view_value)
+ 238   3      //      {
+ 239   3      //        set_view_value = set_value[menu2_old_page];
+ 240   3      //        Update_Menu2_Value();
+C51 COMPILER V9.57.0.0   MENU2                                                             06/22/2018 16:51:28 PAGE 5   
 
- 241   2          Wr_Command(0x01,1); //显示清屏
- 242   2      
- 243   2          Discrable_Menu2_String(menu2_old_page); 
- 244   2      
- 245   2      
- 246   2        }
- 247   1        menu2_display = 0;
- 248   1        menu2_set=0;//退出更改模式到显示模式
- 249   1      }
- 250          
- 251          void Update_Menu2_Value()
- 252          {
- 253   1        uint8 i =0;
- 254   1        for(i=0;i<16;i++)
- 255   1        {
- 256   2          menu2_str[i]=' ';
- 257   2        } 
- 258   1        menu2_str[5] = set_value[menu2_old_page]%100000/10000+0x30; 
- 259   1        menu2_str[6] = set_value[menu2_old_page]%10000/1000+0x30;
- 260   1        menu2_str[7] = set_value[menu2_old_page]%1000/100+0x30;
- 261   1        menu2_str[8] = set_value[menu2_old_page]%100/10+0x30;
- 262   1        menu2_str[9]  ='.'; 
- 263   1        menu2_str[10] =set_value[menu2_old_page]%10+0x30;
- 264   1        Display_String(3,menu2_str);//菜单值
- 265   1      }
- 266          void Set_Menu2_Value(int8 index,int16 value)
- 267          {
- 268   1        //index-=40;
- 269   1        if(set_value[index] != value)
- 270   1        {
- 271   2          set_value[index] = value;
- 272   2          menu2_value_update = 1;
- 273   2        }
- 274   1      }
+ 241   3      //      }
+ 242   3            continue;
+ 243   3          }
+ 244   2          menu2_display = 1;
+ 245   2          
+ 246   2          menu2_old_page = menu2_now_page;
+ 247   2          
+ 248   2          Wr_Command(0x01,1); //显示清屏
+ 249   2      
+ 250   2          Discrable_Menu2_String(menu2_old_page); 
+ 251   2      
+ 252   2      
+ 253   2        }
+ 254   1        menu2_display = 0;
+ 255   1        menu2_set=0;//退出更改模式到显示模式
+ 256   1      }
+ 257          
+ 258          void Update_Menu2_Value()
+ 259          {
+ 260   1        uint8 i =0;
+ 261   1        for(i=0;i<16;i++)
+ 262   1        {
+ 263   2          menu2_str[i]=' ';
+ 264   2        } 
+ 265   1        menu2_str[5] = set_view_value%100000/10000+0x30;  
+ 266   1        menu2_str[6] = set_view_value%10000/1000+0x30;
+ 267   1        menu2_str[7] = set_view_value%1000/100+0x30;
+ 268   1        menu2_str[8] = set_view_value%100/10+0x30;
+ 269   1        menu2_str[9]  ='.'; 
+ 270   1        menu2_str[10] =set_view_value%10+0x30;
+ 271   1        Display_String(3,menu2_str);//菜单值
+ 272   1      }
+ 273          void Set_Menu2_Value(int8 index,int16 value)
+ 274          {
+ 275   1        set_value[index] = value;
+ 276   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    978    ----
-   CONSTANT SIZE    =    168    ----
-   XDATA SIZE       =     53       2
+   CODE SIZE        =    950    ----
+   CONSTANT SIZE    =    132    ----
+   XDATA SIZE       =     47       2
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----

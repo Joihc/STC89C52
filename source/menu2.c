@@ -2,16 +2,13 @@
 #include "menu2.h"
 
 
-#define MENU2_INDEX 14
+#define MENU2_INDEX 11
 #define MENU2_NUM 12
 uint8  code set_str[MENU2_INDEX][MENU2_NUM] = {
 	{"  输入密码  "},
 	{"  最大功率  "},
-	{"最大供电电压"},
-	{"最小供电电压"},
 	{"最大线盘电流"},
 	{"最大线盘温度"},
-	{"通用线盘温度"},
 	{"最大锅内温度"},		
 	{"最大漏料温度"},	
 	{"最大IGBT频率"},
@@ -33,10 +30,9 @@ static int16 set_value[MENU2_INDEX]={
 	0,
 	0,
 	0,
-	0,
-	0,
-	0,
 };
+
+static int16 set_view_value =0;
 
 bit menu2_value_update = 0;
 
@@ -47,7 +43,6 @@ bit menu2_display =0;
 bit menu2_set =0;//在设置状态
 uint8 menu2_set_num = 0;//默认设置0位  左到右 0 1 2 3 4
 
-static int16 menu2_value =0;
 static uint8 menu2_str[16]={""};
 
 static uint32 heart_beat_men2 =0;
@@ -57,6 +52,9 @@ void Discrable_Menu2_String(uint8 per)
 {
 	uint8 mark;
 	int16 value = set_value[per];
+	
+	set_view_value = set_value[per];//保存显示的数据
+	
 	for(mark=0;mark<16;mark++)
 	{
 		menu2_str[mark]=' ';
@@ -166,16 +164,15 @@ void Display_Menu2_Screen()
 			}
 			else if(menu2_set)
 			{
-				if(set_value[menu2_old_page]-My_Pow(10,menu2_set_num)<0)
+				if(set_view_value-My_Pow(10,menu2_set_num)<0)
 				{
-					menu2_value =0;
+					set_view_value =0;
 				}
 				else
 				{
-					menu2_value = set_value[menu2_old_page]-My_Pow(10,menu2_set_num);
+					set_view_value -= My_Pow(10,menu2_set_num);
 				}
-				Set_Menu2_Value(menu2_old_page,menu2_value);
-				//Send_To_Client_Packet(40+menu2_old_page,menu2_value);
+				menu2_value_update = 1;
 				
 			}		
 		}
@@ -187,15 +184,15 @@ void Display_Menu2_Screen()
 			}
 			else if(menu2_set)
 			{
-				if(set_value[menu2_old_page] + My_Pow(10,menu2_set_num) > 32767)
+				if(set_view_value + My_Pow(10,menu2_set_num) > 32767)
 				{
-					menu2_value = 32767;
+					set_view_value = 32767;
 				}
 				else
 				{
-					menu2_value = set_value[menu2_old_page] + My_Pow(10,menu2_set_num);
+					set_view_value += My_Pow(10,menu2_set_num);
 				}
-				Set_Menu2_Value(menu2_old_page,menu2_value);
+				menu2_value_update = 1;
 			}
 		}
 		else if(Return_Key_Down())
@@ -210,7 +207,7 @@ void Display_Menu2_Screen()
 			if(!menu2_set)
 			{
 				//保存
-				Send_To_Client_Packet(50+menu2_old_page,menu2_value);
+				Send_To_Client_Packet(50+menu2_old_page,set_view_value);
 			}
 		}
 		else if(Left_Key_Down() && menu2_set && menu2_set_num <4)
@@ -223,7 +220,12 @@ void Display_Menu2_Screen()
 		}
 		Set_Mark();
 		
-		Usart_Update();		
+		Usart_Update();	
+		if(!menu2_set && set_view_value !=set_value[menu2_old_page] )
+		{
+			set_view_value = set_value[menu2_old_page];
+			menu2_value_update = 1;
+		}			
 		if(menu2_now_page == menu2_old_page && menu2_display==1)
 		{
 			//只更新数据
@@ -232,6 +234,11 @@ void Display_Menu2_Screen()
 				menu2_value_update =0;
 				Update_Menu2_Value();
 			}
+//			if(!menu2_set && set_value[menu2_old_page]!=set_view_value)
+//			{
+//				set_view_value = set_value[menu2_old_page];
+//				Update_Menu2_Value();
+//			}
 			continue;
 		}
 		menu2_display = 1;
@@ -255,20 +262,15 @@ void Update_Menu2_Value()
 	{
 		menu2_str[i]=' ';
 	}	
-	menu2_str[5] = set_value[menu2_old_page]%100000/10000+0x30;	
-	menu2_str[6] = set_value[menu2_old_page]%10000/1000+0x30;
-	menu2_str[7] = set_value[menu2_old_page]%1000/100+0x30;
-	menu2_str[8] = set_value[menu2_old_page]%100/10+0x30;
+	menu2_str[5] = set_view_value%100000/10000+0x30;	
+	menu2_str[6] = set_view_value%10000/1000+0x30;
+	menu2_str[7] = set_view_value%1000/100+0x30;
+	menu2_str[8] = set_view_value%100/10+0x30;
 	menu2_str[9]	='.';	
-	menu2_str[10]	=set_value[menu2_old_page]%10+0x30;
+	menu2_str[10]	=set_view_value%10+0x30;
 	Display_String(3,menu2_str);//菜单值
 }
 void Set_Menu2_Value(int8 index,int16 value)
 {
-	//index-=40;
-	if(set_value[index] != value)
-	{
-		set_value[index] = value;
-		menu2_value_update = 1;
-	}
+	set_value[index] = value;
 }

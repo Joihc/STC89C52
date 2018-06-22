@@ -1,4 +1,4 @@
-C51 COMPILER V9.57.0.0   USART                                                             06/07/2018 09:40:57 PAGE 1   
+C51 COMPILER V9.57.0.0   USART                                                             06/22/2018 16:51:28 PAGE 1   
 
 
 C51 COMPILER V9.57.0.0, COMPILATION OF MODULE USART
@@ -32,281 +32,272 @@ line level    source
              -','X','#'};
   21          uint8 HeartBeat[16]={Service_headflag,deviceID_1Bit,deviceID_2Bit,'_','X','X','_','0','0','0','0','0','0',
              -'0','#'};
-  22          
-  23          int16 trans_int;
-  24          uint8 trans_str[7];
-  25          
-  26          struct FifoQueue usart_queue;//串口通信仓库
-  27          
-  28          void Usart_Update()
-  29          {
-  30   1        if(Take_Queue(buf_string))
-  31   1        {
-  32   2          Deal_UART_RecData();
-  33   2        }
-  34   1      }
-  35          void Send_To_Client_Packet(int8 index,int32 num)
-  36          {
-  37   1        uint32 buf = abs(num);
-  38   1        DataPackage[4]=0x30+index%100/10;
-  39   1        DataPackage[5]= 0x30+index%10;
+  22          uint8 InitPackage[16]={Service_headflag,deviceID_1Bit,deviceID_2Bit,'_','X','1','_','0','0','0','0','0','0
+             -','0','#'};
+  23          //开启顺序：开启->发送InitPackage->接收所有数据->并刷新当前界面
+  24          //              ->每隔100次循环发送HeartBeat->100次循环里面接收，如果接收不到则说明通信故障
+  25          //              ->修改当前菜单2的数据->发送修改后的数据->接收并刷新当前界面
+  26          int16 trans_int;
+  27          uint8 trans_str[7];
+  28          
+  29          struct FifoQueue usart_queue;//串口通信仓库
+  30          
+  31          uint16 WaitHeartTime  = 0;
+  32          
+  33          void Usart_Update()
+  34          {
+  35   1        if(Take_Queue(buf_string))
+  36   1        {
+  37   2          Deal_UART_RecData();
+  38   2        }
+  39   1        
   40   1        
-  41   1        DataPackage[7] = (num<0?'-':'+');
-  42   1        DataPackage[8] = 0x30+buf%1000000/100000;
-  43   1        DataPackage[9] = 0x30+buf%100000/10000;
-  44   1        DataPackage[10]= 0x30+buf%10000/1000;
-  45   1        DataPackage[11]= 0x30+buf%1000/100;
-  46   1        DataPackage[12]= 0x30+buf%100/10;
-  47   1        DataPackage[13]= 0x30+buf%10;
-  48   1          
-  49   1        ES=0; //关闭接收中断
-  50   1        for(buf=0;buf<15;buf++)
-  51   1        {
-C51 COMPILER V9.57.0.0   USART                                                             06/07/2018 09:40:57 PAGE 2   
+  41   1        if(WaitHeartTime<10000)
+  42   1        {
+  43   2          WaitHeartTime++;
+  44   2          Set_Menu1_Value(11,0);//没有通信故障
+  45   2        }
+  46   1        else
+  47   1        {
+  48   2          Set_Menu1_Value(11,1);//通信故障
+  49   2        }
+  50   1      }
+C51 COMPILER V9.57.0.0   USART                                                             06/22/2018 16:51:28 PAGE 2   
 
-  52   2          SBUF = DataPackage[buf];
-  53   2          while(TI==0);
-  54   2          TI=0;  
-  55   2        }
-  56   1        ES=1; 
-  57   1      }  
-  58          
-  59          void SendHeartBeadPacket()
-  60          {
-  61   1        uint8 i;
-  62   1        ES=0; //关闭接收中断
-  63   1        for(i=0;i<15;i++)
-  64   1        {
-  65   2          SBUF = HeartBeat[i];
-  66   2          while(TI==0);
-  67   2          TI=0;  
-  68   2        }
-  69   1        ES=1; 
-  70   1      }
-  71          //定时器1用作波特率发生器
-  72          void Init_USART()  
-  73          {
-  74   1          SCON=0x50;  //串口方式1，使能接收
-  75   1          TMOD|=0x20;  //定时器1工作方式2（8位自动重装初值）
-  76   1          TMOD&=~0x10;
-  77   1          TH1=0xf3;   // 计数器初始值设置，注意波特率是4800的  12M晶振
-  78   1          TL1=0xf3;  
-  79   1          PCON|=0x80;  //SMOD=1
-  80   1          TR1=1;
-  81   1          TI=0;
-  82   1          RI=0;
-  83   1          //PS=1;   //提高串口中断优先级
-  84   1          ES=1;  //开启串口中断使能
-  85   1        
-  86   1          QueueInit(&usart_queue);
-  87   1      }
-  88          //装入数据
-  89          void Interrupt_Queue(uint8 sbuf)
-  90          {
-  91   1        QueueIn(&usart_queue,sbuf);
-  92   1      }
-  93          //取出B字开头的15个数据
-  94          uint8 Take_Queue(uint8 *newchar)
-  95          {
-  96   1        uint8 i =0;
-  97   1        uint8 temp;
-  98   1        if(usart_queue.count < 15)
-  99   1        {
- 100   2          return 0;//不足15个数据
- 101   2        }
- 102   1        while(i<15 && QueueOut(&usart_queue,&temp) != QueueEmpty)
- 103   1        {
- 104   2          if(temp == Clinet_headflag || i != 0)
- 105   2          {
- 106   3            newchar[i] = temp;
- 107   3            i++;
- 108   3          }
- 109   2        }
- 110   1        if(i==15)//取了完整的数据
- 111   1        {
- 112   2          return 1;
- 113   2        }
-C51 COMPILER V9.57.0.0   USART                                                             06/07/2018 09:40:57 PAGE 3   
+  51          void Send_To_Client_Packet(int8 index,int32 num)
+  52          {
+  53   1        uint32 buf = abs(num);
+  54   1        DataPackage[4]=0x30+index%100/10;
+  55   1        DataPackage[5]= 0x30+index%10;
+  56   1        
+  57   1        DataPackage[7] = (num<0?'-':'+');
+  58   1        DataPackage[8] = 0x30+buf%1000000/100000;
+  59   1        DataPackage[9] = 0x30+buf%100000/10000;
+  60   1        DataPackage[10]= 0x30+buf%10000/1000;
+  61   1        DataPackage[11]= 0x30+buf%1000/100;
+  62   1        DataPackage[12]= 0x30+buf%100/10;
+  63   1        DataPackage[13]= 0x30+buf%10;
+  64   1          
+  65   1        ES=0; //关闭接收中断
+  66   1        SBUF ='#';
+  67   1        while(TI==0);
+  68   1        TI=0;
+  69   1        for(buf=0;buf<15;buf++)
+  70   1        {
+  71   2          
+  72   2          SBUF = DataPackage[buf];
+  73   2          while(TI==0);
+  74   2          TI=0;   
+  75   2        }
+  76   1        ES=1; 
+  77   1      }  
+  78          
+  79          void SendHeartBeadPacket()
+  80          {
+  81   1        uint8 i;
+  82   1        ES=0; //关闭接收中断
+  83   1        for(i=0;i<15;i++)
+  84   1        {
+  85   2          SBUF = HeartBeat[i];
+  86   2          while(TI==0);
+  87   2          TI=0;  
+  88   2        }
+  89   1        ES=1; 
+  90   1      }
+  91          //定时器1用作波特率发生器
+  92          void Init_USART()  
+  93          {
+  94   1          SCON=0x50;  //串口方式1，使能接收
+  95   1          TMOD|=0x20;  //定时器1工作方式2（8位自动重装初值）
+  96   1          TMOD&=~0x10;
+  97   1          TH1=0xf3;   // 计数器初始值设置，注意波特率是4800的  12M晶振
+  98   1          TL1=0xf3;  
+  99   1          PCON|=0x80;  //SMOD=1
+ 100   1          TR1=1;
+ 101   1          TI=0;
+ 102   1          RI=0;
+ 103   1          //PS=1;   //提高串口中断优先级
+ 104   1          ES=1;  //开启串口中断使能
+ 105   1        
+ 106   1          QueueInit(&usart_queue);
+ 107   1      }
+ 108          //装入数据
+ 109          void Interrupt_Queue(uint8 sbuf)
+ 110          {
+ 111   1        QueueIn(&usart_queue,sbuf);
+ 112   1      }
+C51 COMPILER V9.57.0.0   USART                                                             06/22/2018 16:51:28 PAGE 3   
 
- 114   1        return 0;
- 115   1      }
- 116          //比较指令尾部(start:从哪里开始比较，quality:比较多少个字符，CMD_tail[]：要比较的字符串)
- 117          bit CompareCMD_tail(unsigned char start,unsigned char quality,char CMD_tail[]) 
- 118          {
- 119   1          unsigned char CharNum;
- 120   1          for(CharNum=0;CharNum<quality;CharNum++)
- 121   1          {
- 122   2              if(!(buf_string[start+CharNum]==CMD_tail[CharNum]))
- 123   2              {
- 124   3                  return 0; 
- 125   3              }
- 126   2          }
- 127   1          return 1;
- 128   1      }
- 129          
- 130          bit Deal_UART_RecData()   //处理串口接收数据包函数（成功处理数据包则返回1，否则返回0）
- 131          { 
- 132   1        //清除发送完成标志位
- 133   1      //    == 00  当前功率
- 134   1      //    == 01  供电电压
- 135   1      //    == 02  供电电流
- 136   1      //    == 03  线盘电流
- 137   1      //    == 04  最大电流
- 138   1      //    == 05  线盘温度
- 139   1      //    == 06  锅内温度
- 140   1      //    == 07  IGBT频率
- 141   1      //    == 08  IGBT温度
- 142   1      //    == 09  使用容量
- 143   1      //    == 10  机器状态
- 144   1      //  
- 145   1      //    == 50   输入密码
- 146   1      //    == 51   最大功率  
- 147   1      //    == 52   最大供电电压
- 148   1      //    == 53   最小供电电压
- 149   1      //    == 54   最大线盘电流
- 150   1      //    == 55   最大线盘温度
- 151   1      //    == 56   通用线盘温度
- 152   1      //    == 57   最大锅内温度    
- 153   1      //    == 58   最大漏料温度  
- 154   1      //    == 59   最大IGBT频率
- 155   1      //    == 60   最小IGBT频率
- 156   1      //    == 61   最大IGBT温度
- 157   1      //    == 62   限制工作时间
- 158   1      //    == 63   修改密码  
- 159   1        if(buf_string[0]==Clinet_headflag&&buf_string[14]=='#')  //进行数据包头尾标记验证
- 160   1        {        
- 161   2          if(CompareCMD_tail(1,2,deviceID))
- 162   2          {
- 163   3            strncpy(trans_str,buf_string+7,7);
- 164   3            trans_int = my_atoi(trans_str);
- 165   3            if(CompareCMD_tail(4,2,"00"))     //    == 00  当前功率
- 166   3            {
- 167   4              Set_Menu1_Value(0,trans_int);
- 168   4              //send_PC('a');
- 169   4            }
- 170   3            else if(CompareCMD_tail(4,2,"01"))//    == 01  供电电压
- 171   3            {
- 172   4              Set_Menu1_Value(1,trans_int);
- 173   4              //send_PC('b');
- 174   4            }
- 175   3            else if(CompareCMD_tail(4,2,"02"))//    == 02  供电电流
-C51 COMPILER V9.57.0.0   USART                                                             06/07/2018 09:40:57 PAGE 4   
+ 113          //取出B字开头的15个数据
+ 114          uint8 Take_Queue(uint8 *newchar)
+ 115          {
+ 116   1        uint8 i =0;
+ 117   1        uint8 temp;
+ 118   1        QueueCheckOut(&usart_queue,Clinet_headflag);
+ 119   1        if(usart_queue.count < 15)
+ 120   1        {
+ 121   2          return 0;//不足15个数据
+ 122   2        }
+ 123   1        while(i<15 && QueueOut(&usart_queue,&temp) != QueueEmpty)
+ 124   1        {
+ 125   2          if(temp == Clinet_headflag || i != 0)
+ 126   2          {
+ 127   3            newchar[i] = temp;
+ 128   3            i++;
+ 129   3          }
+ 130   2        }
+ 131   1        if(i==15)//取了完整的数据
+ 132   1        {
+ 133   2          return 1;
+ 134   2        }
+ 135   1        return 0;
+ 136   1      }
+ 137          //比较指令尾部(start:从哪里开始比较，quality:比较多少个字符，CMD_tail[]：要比较的字符串)
+ 138          bit CompareCMD_tail(unsigned char start,unsigned char quality,char CMD_tail[]) 
+ 139          {
+ 140   1          unsigned char CharNum;
+ 141   1          for(CharNum=0;CharNum<quality;CharNum++)
+ 142   1          {
+ 143   2              if(!(buf_string[start+CharNum]==CMD_tail[CharNum]))
+ 144   2              {
+ 145   3                  return 0; 
+ 146   3              }
+ 147   2          }
+ 148   1          return 1;
+ 149   1      }
+ 150          
+ 151          bit Deal_UART_RecData()   //处理串口接收数据包函数（成功处理数据包则返回1，否则返回0）
+ 152          { 
+ 153   1        if(buf_string[0]==Clinet_headflag&&buf_string[14]=='#')  //进行数据包头尾标记验证
+ 154   1        {        
+ 155   2          if(CompareCMD_tail(1,2,deviceID))
+ 156   2          {
+ 157   3            strncpy(trans_str,buf_string+7,7);
+ 158   3            trans_int = my_atoi(trans_str);
+ 159   3            if(CompareCMD_tail(4,2,"00"))     //    == 00  当前功率
+ 160   3            {
+ 161   4              Set_Menu1_Value(0,trans_int);
+ 162   4              //send_PC('a');
+ 163   4            }
+ 164   3            else if(CompareCMD_tail(4,2,"01"))//    == 01  供电电压
+ 165   3            {
+ 166   4              Set_Menu1_Value(1,trans_int);
+ 167   4              //send_PC('b');
+ 168   4            }
+ 169   3            else if(CompareCMD_tail(4,2,"02"))//    == 02  供电电流
+ 170   3            {
+ 171   4              Set_Menu1_Value(2,trans_int);
+ 172   4              //send_PC('c');
+ 173   4            }
+ 174   3            else if(CompareCMD_tail(4,2,"03"))//    == 03  线盘电流
+C51 COMPILER V9.57.0.0   USART                                                             06/22/2018 16:51:28 PAGE 4   
 
- 176   3            {
- 177   4              Set_Menu1_Value(2,trans_int);
- 178   4              //send_PC('c');
- 179   4            }
- 180   3            else if(CompareCMD_tail(4,2,"03"))//    == 03  线盘电流
- 181   3            {
- 182   4              Set_Menu1_Value(3,trans_int);
- 183   4            }
- 184   3            else if(CompareCMD_tail(4,2,"04"))//    == 04  最大电流
- 185   3            {
- 186   4              Set_Menu1_Value(4,trans_int);
- 187   4            }
- 188   3            else if(CompareCMD_tail(4,2,"05"))//    == 05  线盘温度
- 189   3            {
- 190   4              Set_Menu1_Value(5,trans_int);
- 191   4            }
- 192   3            else if(CompareCMD_tail(4,2,"06"))//    == 06  锅内温度
- 193   3            {
- 194   4              Set_Menu1_Value(6,trans_int);
- 195   4            }
- 196   3            else if(CompareCMD_tail(4,2,"07"))//    == 07  IGBT频率
- 197   3            {
- 198   4              Set_Menu1_Value(7,trans_int);
- 199   4            }
- 200   3            else if(CompareCMD_tail(4,2,"08"))//    == 08  IGBT温度
- 201   3            {
- 202   4              Set_Menu1_Value(8,trans_int);
- 203   4            }
- 204   3            else if(CompareCMD_tail(4,2,"09"))//    == 09  使用容量
- 205   3            {
- 206   4              Set_Menu1_Value(9,trans_int);
- 207   4            }
- 208   3            else if(CompareCMD_tail(4,2,"10"))//    == 10  机器状态
- 209   3            {
- 210   4              Set_Menu1_Value(10,trans_int);
- 211   4            }
- 212   3            else if(CompareCMD_tail(4,2,"50"))//    == 50   输入密码
- 213   3            {
- 214   4              Set_Menu2_Value(0,trans_int);                           
- 215   4            }
- 216   3            else if(CompareCMD_tail(4,2,"51"))//    == 51   最大功率
- 217   3            {
- 218   4              Set_Menu2_Value(1,trans_int);                               
- 219   4            }  
- 220   3            else if(CompareCMD_tail(4,2,"52"))//    == 52   最大供电电压
- 221   3            {
- 222   4              Set_Menu2_Value(2,trans_int); 
- 223   4            }
- 224   3            else if(CompareCMD_tail(4,2,"53"))//    == 53   最小供电电压
- 225   3            {
- 226   4              Set_Menu2_Value(3,trans_int); 
- 227   4            }
- 228   3            else if(CompareCMD_tail(4,2,"54"))//    == 54   最大线盘电流
- 229   3            {
- 230   4              Set_Menu2_Value(4,trans_int); 
- 231   4            }
- 232   3            else if(CompareCMD_tail(4,2,"55"))//    == 55   最大线盘温度
- 233   3            {
- 234   4              Set_Menu2_Value(5,trans_int); 
- 235   4            }
- 236   3            else if(CompareCMD_tail(4,2,"56"))//    == 56   通用线盘温度
- 237   3            {
-C51 COMPILER V9.57.0.0   USART                                                             06/07/2018 09:40:57 PAGE 5   
+ 175   3            {
+ 176   4              Set_Menu1_Value(3,trans_int);
+ 177   4            }
+ 178   3            else if(CompareCMD_tail(4,2,"04"))//    == 04  最大电流
+ 179   3            {
+ 180   4              Set_Menu1_Value(4,trans_int);
+ 181   4            }
+ 182   3            else if(CompareCMD_tail(4,2,"05"))//    == 05  线盘温度
+ 183   3            {
+ 184   4              Set_Menu1_Value(5,trans_int);
+ 185   4            }
+ 186   3            else if(CompareCMD_tail(4,2,"06"))//    == 06  锅内温度
+ 187   3            {
+ 188   4              Set_Menu1_Value(6,trans_int);
+ 189   4            }
+ 190   3            else if(CompareCMD_tail(4,2,"07"))//    == 07  IGBT频率
+ 191   3            {
+ 192   4              Set_Menu1_Value(7,trans_int);
+ 193   4            }
+ 194   3            else if(CompareCMD_tail(4,2,"08"))//    == 08  IGBT温度
+ 195   3            {
+ 196   4              Set_Menu1_Value(8,trans_int);
+ 197   4            }
+ 198   3            else if(CompareCMD_tail(4,2,"09"))//    == 09  使用容量
+ 199   3            {
+ 200   4              Set_Menu1_Value(9,trans_int);
+ 201   4            }
+ 202   3            else if(CompareCMD_tail(4,2,"10"))//    == 10  机器状态
+ 203   3            {
+ 204   4              Set_Menu1_Value(10,trans_int);
+ 205   4            }
+ 206   3            else if(CompareCMD_tail(4,2,"11"))//    ==11   通信状态
+ 207   3            {
+ 208   4            
+ 209   4            }
+ 210   3            else if(CompareCMD_tail(4,2,"50"))//    == 50   输入密码
+ 211   3            {
+ 212   4              Set_Menu2_Value(0,trans_int);                           
+ 213   4            }
+ 214   3            else if(CompareCMD_tail(4,2,"51"))//    == 51   最大功率
+ 215   3            {
+ 216   4              Set_Menu2_Value(1,trans_int);                               
+ 217   4            }  
+ 218   3            else if(CompareCMD_tail(4,2,"52"))//    == 52   最大线盘电流
+ 219   3            {
+ 220   4              Set_Menu2_Value(2,trans_int); 
+ 221   4            }
+ 222   3            else if(CompareCMD_tail(4,2,"53"))//    == 53   最大线盘温度
+ 223   3            {
+ 224   4              Set_Menu2_Value(3,trans_int); 
+ 225   4            }
+ 226   3            else if(CompareCMD_tail(4,2,"54"))//    == 54   最大锅内温度
+ 227   3            {
+ 228   4              Set_Menu2_Value(4,trans_int); 
+ 229   4            }
+ 230   3            else if(CompareCMD_tail(4,2,"55"))//    == 55   最大漏料温度
+ 231   3            {
+ 232   4              Set_Menu2_Value(5,trans_int); 
+ 233   4            }
+ 234   3            else if(CompareCMD_tail(4,2,"56"))//    == 56   最大IGBT频率
+ 235   3            {
+ 236   4              Set_Menu2_Value(6,trans_int); 
+C51 COMPILER V9.57.0.0   USART                                                             06/22/2018 16:51:28 PAGE 5   
 
- 238   4              Set_Menu2_Value(6,trans_int); 
- 239   4            }
- 240   3            else if(CompareCMD_tail(4,2,"57"))//    == 57   最大锅内温度
- 241   3            {
- 242   4              Set_Menu2_Value(7,trans_int); 
- 243   4            }       
- 244   3            else if(CompareCMD_tail(4,2,"58"))//    == 58   最大漏料温度  
- 245   3            {
- 246   4              Set_Menu2_Value(8,trans_int); 
- 247   4            }
- 248   3            else if(CompareCMD_tail(4,2,"59"))//    == 59   最大IGBT频率
- 249   3            {
- 250   4              Set_Menu2_Value(9,trans_int); 
- 251   4            }
- 252   3            else if(CompareCMD_tail(4,2,"60"))//    == 60   最小IGBT频率
- 253   3            {
- 254   4              Set_Menu2_Value(10,trans_int);  
- 255   4            }
- 256   3            else if(CompareCMD_tail(4,2,"61"))//    == 61   最大IGBT温度
- 257   3            {
- 258   4              Set_Menu2_Value(11,trans_int);  
- 259   4            }
- 260   3            else if(CompareCMD_tail(4,2,"62"))//    == 62   限制工作时间
- 261   3            {
- 262   4              Set_Menu2_Value(12,trans_int);  
- 263   4            }
- 264   3            else if(CompareCMD_tail(4,2,"63"))//    == 63   恢复出厂设置
- 265   3            {
- 266   4              Set_Menu2_Value(13,trans_int);  
- 267   4            }       
- 268   3          }
- 269   2        }
- 270   1        return 0;
- 271   1      }
+ 237   4            }
+ 238   3            else if(CompareCMD_tail(4,2,"57"))//    == 57   最小IGBT频率
+ 239   3            {
+ 240   4              Set_Menu2_Value(7,trans_int); 
+ 241   4            }       
+ 242   3            else if(CompareCMD_tail(4,2,"58"))//    == 58   最大IGBT温度  
+ 243   3            {
+ 244   4              Set_Menu2_Value(8,trans_int); 
+ 245   4            }
+ 246   3            else if(CompareCMD_tail(4,2,"59"))//    == 59   限制工作时间
+ 247   3            {
+ 248   4              Set_Menu2_Value(9,trans_int); 
+ 249   4            }
+ 250   3            else if(CompareCMD_tail(4,2,"60"))//    == 60   恢复出厂设置
+ 251   3            {
+ 252   4              Set_Menu2_Value(10,trans_int);  
+ 253   4            }
+ 254   3            else if(CompareCMD_tail(4,2,"XX"))//接收到 心跳反馈包
+ 255   3            {
+ 256   4              WaitHeartTime = 0;
+ 257   4            }
+ 258   3          }
+ 259   2        }
+ 260   1        return 0;
+ 261   1      }
+ 262          
+ 263          
+ 264          //void send_PC(int8 ch)
+ 265          //{
+ 266          //    SBUF = ch;
+ 267          //    while(TI==0);
+ 268          //    TI=0;
+ 269          //}
+ 270          
+ 271          
  272          
- 273          
- 274          void send_PC(int8 ch)
- 275          {
- 276   1          SBUF = ch;
- 277   1          while(TI==0);
- 278   1          TI=0;
- 279   1      }
- 280          
- 281          
- 282          
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1292    ----
-   CONSTANT SIZE    =     75    ----
-   XDATA SIZE       =    123      19
+   CODE SIZE        =   1313    ----
+   CONSTANT SIZE    =     72    ----
+   XDATA SIZE       =    141      19
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----

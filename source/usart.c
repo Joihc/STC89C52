@@ -19,17 +19,33 @@ uint8 buf_string[16];  							//½ÓÊÕÊı¾İ
 //Êı¾İ-9999.99~+9999.99
 uint8 DataPackage[16]={Service_headflag,deviceID_1Bit,deviceID_2Bit,'_','0','1','_','X','X','X','X','X','X','X','#'};
 uint8 HeartBeat[16]={Service_headflag,deviceID_1Bit,deviceID_2Bit,'_','X','X','_','0','0','0','0','0','0','0','#'};
-
+uint8 InitPackage[16]={Service_headflag,deviceID_1Bit,deviceID_2Bit,'_','X','1','_','0','0','0','0','0','0','0','#'};
+//¿ªÆôË³Ğò£º¿ªÆô->·¢ËÍInitPackage->½ÓÊÕËùÓĞÊı¾İ->²¢Ë¢ĞÂµ±Ç°½çÃæ
+//							->Ã¿¸ô100´ÎÑ­»··¢ËÍHeartBeat->100´ÎÑ­»·ÀïÃæ½ÓÊÕ£¬Èç¹û½ÓÊÕ²»µ½ÔòËµÃ÷Í¨ĞÅ¹ÊÕÏ
+//							->ĞŞ¸Äµ±Ç°²Ëµ¥2µÄÊı¾İ->·¢ËÍĞŞ¸ÄºóµÄÊı¾İ->½ÓÊÕ²¢Ë¢ĞÂµ±Ç°½çÃæ
 int16 trans_int;
 uint8 trans_str[7];
 
 struct FifoQueue usart_queue;//´®¿ÚÍ¨ĞÅ²Ö¿â
+
+uint16 WaitHeartTime 	= 0;
 
 void Usart_Update()
 {
 	if(Take_Queue(buf_string))
 	{
 		Deal_UART_RecData();
+	}
+	
+	
+	if(WaitHeartTime<10000)
+	{
+		WaitHeartTime++;
+		Set_Menu1_Value(11,0);//Ã»ÓĞÍ¨ĞÅ¹ÊÕÏ
+	}
+	else
+	{
+		Set_Menu1_Value(11,1);//Í¨ĞÅ¹ÊÕÏ
 	}
 }
 void Send_To_Client_Packet(int8 index,int32 num)
@@ -47,11 +63,15 @@ void Send_To_Client_Packet(int8 index,int32 num)
 	DataPackage[13]= 0x30+buf%10;
 		
 	ES=0; //¹Ø±Õ½ÓÊÕÖĞ¶Ï
+	SBUF ='#';
+	while(TI==0);
+  TI=0;
 	for(buf=0;buf<15;buf++)
 	{
+		
 		SBUF = DataPackage[buf];
 		while(TI==0);
-    TI=0;  
+    TI=0;	  
 	}
 	ES=1; 
 }  
@@ -95,6 +115,7 @@ uint8 Take_Queue(uint8 *newchar)
 {
 	uint8 i =0;
 	uint8 temp;
+	QueueCheckOut(&usart_queue,Clinet_headflag);
 	if(usart_queue.count < 15)
 	{
 		return 0;//²»×ã15¸öÊı¾İ
@@ -129,33 +150,6 @@ bit CompareCMD_tail(unsigned char start,unsigned char quality,char CMD_tail[])
 
 bit Deal_UART_RecData()   //´¦Àí´®¿Ú½ÓÊÕÊı¾İ°üº¯Êı£¨³É¹¦´¦ÀíÊı¾İ°üÔò·µ»Ø1£¬·ñÔò·µ»Ø0£©
 {	
-	//Çå³ı·¢ËÍÍê³É±êÖ¾Î»
-//	  == 00  µ±Ç°¹¦ÂÊ
-//		== 01  ¹©µçµçÑ¹
-//		== 02  ¹©µçµçÁ÷
-//		== 03	 ÏßÅÌµçÁ÷
-//		== 04  ×î´óµçÁ÷
-//		== 05  ÏßÅÌÎÂ¶È
-//		== 06  ¹øÄÚÎÂ¶È
-//		== 07  IGBTÆµÂÊ
-//		== 08  IGBTÎÂ¶È
-//		== 09  Ê¹ÓÃÈİÁ¿
-//		== 10  »úÆ÷×´Ì¬
-//	
-//		== 50   ÊäÈëÃÜÂë
-//		== 51		×î´ó¹¦ÂÊ  
-//		== 52		×î´ó¹©µçµçÑ¹
-//		== 53		×îĞ¡¹©µçµçÑ¹
-//		== 54		×î´óÏßÅÌµçÁ÷
-//		== 55		×î´óÏßÅÌÎÂ¶È
-//		== 56		Í¨ÓÃÏßÅÌÎÂ¶È
-//		== 57		×î´ó¹øÄÚÎÂ¶È		
-//		== 58		×î´óÂ©ÁÏÎÂ¶È	
-//		== 59		×î´óIGBTÆµÂÊ
-//		== 60		×îĞ¡IGBTÆµÂÊ
-//		== 61		×î´óIGBTÎÂ¶È
-//		== 62		ÏŞÖÆ¹¤×÷Ê±¼ä
-//		== 63   ĞŞ¸ÄÃÜÂë  
 	if(buf_string[0]==Clinet_headflag&&buf_string[14]=='#')  //½øĞĞÊı¾İ°üÍ·Î²±ê¼ÇÑéÖ¤
 	{        
 		if(CompareCMD_tail(1,2,deviceID))
@@ -209,6 +203,10 @@ bit Deal_UART_RecData()   //´¦Àí´®¿Ú½ÓÊÕÊı¾İ°üº¯Êı£¨³É¹¦´¦ÀíÊı¾İ°üÔò·µ»Ø1£¬·ñÔò·
 			{
 				Set_Menu1_Value(10,trans_int);
 			}
+			else if(CompareCMD_tail(4,2,"11"))//		==11   Í¨ĞÅ×´Ì¬
+			{
+			
+			}
 			else if(CompareCMD_tail(4,2,"50"))//		== 50   ÊäÈëÃÜÂë
 			{
 				Set_Menu2_Value(0,trans_int);														
@@ -217,66 +215,58 @@ bit Deal_UART_RecData()   //´¦Àí´®¿Ú½ÓÊÕÊı¾İ°üº¯Êı£¨³É¹¦´¦ÀíÊı¾İ°üÔò·µ»Ø1£¬·ñÔò·
 			{
 				Set_Menu2_Value(1,trans_int);																
 			}  
-			else if(CompareCMD_tail(4,2,"52"))//		== 52		×î´ó¹©µçµçÑ¹
+			else if(CompareCMD_tail(4,2,"52"))//		== 52		×î´óÏßÅÌµçÁ÷
 			{
 				Set_Menu2_Value(2,trans_int);	
 			}
-			else if(CompareCMD_tail(4,2,"53"))//		== 53		×îĞ¡¹©µçµçÑ¹
+			else if(CompareCMD_tail(4,2,"53"))//		== 53		×î´óÏßÅÌÎÂ¶È
 			{
 				Set_Menu2_Value(3,trans_int);	
 			}
-			else if(CompareCMD_tail(4,2,"54"))//		== 54		×î´óÏßÅÌµçÁ÷
+			else if(CompareCMD_tail(4,2,"54"))//		== 54		×î´ó¹øÄÚÎÂ¶È
 			{
 				Set_Menu2_Value(4,trans_int);	
 			}
-			else if(CompareCMD_tail(4,2,"55"))//		== 55		×î´óÏßÅÌÎÂ¶È
+			else if(CompareCMD_tail(4,2,"55"))//		== 55		×î´óÂ©ÁÏÎÂ¶È
 			{
 				Set_Menu2_Value(5,trans_int);	
 			}
-			else if(CompareCMD_tail(4,2,"56"))//		== 56		Í¨ÓÃÏßÅÌÎÂ¶È
+			else if(CompareCMD_tail(4,2,"56"))//		== 56		×î´óIGBTÆµÂÊ
 			{
 				Set_Menu2_Value(6,trans_int);	
 			}
-			else if(CompareCMD_tail(4,2,"57"))//		== 57		×î´ó¹øÄÚÎÂ¶È
+			else if(CompareCMD_tail(4,2,"57"))//		== 57		×îĞ¡IGBTÆµÂÊ
 			{
 				Set_Menu2_Value(7,trans_int);	
 			}				
-			else if(CompareCMD_tail(4,2,"58"))//		== 58		×î´óÂ©ÁÏÎÂ¶È	
+			else if(CompareCMD_tail(4,2,"58"))//		== 58		×î´óIGBTÎÂ¶È	
 			{
 				Set_Menu2_Value(8,trans_int);	
 			}
-			else if(CompareCMD_tail(4,2,"59"))//		== 59		×î´óIGBTÆµÂÊ
+			else if(CompareCMD_tail(4,2,"59"))//		== 59		ÏŞÖÆ¹¤×÷Ê±¼ä
 			{
 				Set_Menu2_Value(9,trans_int);	
 			}
-			else if(CompareCMD_tail(4,2,"60"))//		== 60		×îĞ¡IGBTÆµÂÊ
+			else if(CompareCMD_tail(4,2,"60"))//		== 60		»Ö¸´³ö³§ÉèÖÃ
 			{
 				Set_Menu2_Value(10,trans_int);	
 			}
-			else if(CompareCMD_tail(4,2,"61"))//		== 61		×î´óIGBTÎÂ¶È
+			else if(CompareCMD_tail(4,2,"XX"))//½ÓÊÕµ½ ĞÄÌø·´À¡°ü
 			{
-				Set_Menu2_Value(11,trans_int);	
+				WaitHeartTime = 0;
 			}
-			else if(CompareCMD_tail(4,2,"62"))//		== 62		ÏŞÖÆ¹¤×÷Ê±¼ä
-			{
-				Set_Menu2_Value(12,trans_int);	
-			}
-			else if(CompareCMD_tail(4,2,"63"))//		== 63   »Ö¸´³ö³§ÉèÖÃ
-			{
-				Set_Menu2_Value(13,trans_int);	
-			}				
 		}
 	}
   return 0;
 }
 
 
-void send_PC(int8 ch)
-{
-		SBUF = ch;
-		while(TI==0);
-		TI=0;
-}
+//void send_PC(int8 ch)
+//{
+//		SBUF = ch;
+//		while(TI==0);
+//		TI=0;
+//}
 
 
 

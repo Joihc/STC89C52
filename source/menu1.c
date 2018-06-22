@@ -1,7 +1,7 @@
 #define MENU1_C_
 #include "menu1.h"
 
-#define MENU1_INDEX 11
+#define MENU1_INDEX 12
 #define MENU1_NUM 9
 uint8  code display_str[MENU1_INDEX][MENU1_NUM] = {
 	{"当前功率:"},
@@ -15,9 +15,11 @@ uint8  code display_str[MENU1_INDEX][MENU1_NUM] = {
 	{"IGBT温度:"},
 	{"使用容量:"},
 	{"机器状态:"},
+	{"通信故障:"},
 };
 //最大-9999~+ 32767
 static int16 display_value[MENU1_INDEX]={
+	0,
 	0,
 	0,
 	0,
@@ -132,7 +134,7 @@ void Display_Menu1_Screen()
 {
 	while(1)
 	{
-		if(menu1_old_page < MENU1_INDEX/4 && Down_Key_Down())
+		if(menu1_old_page < (MENU1_INDEX-1)/4 && Down_Key_Down())
 		{
 			menu1_now_page++;
 		}
@@ -160,8 +162,11 @@ void Display_Menu1_Screen()
 		menu1_old_page = menu1_now_page;
 		
 		Wr_Command(0x01,1); //显示清屏
-		Discrable_Menu1_String(display_str[menu1_old_page*4],display_value[menu1_old_page*4],menu1_old_page*4);
-		Display_String(1,menu1_str);
+		if(menu1_old_page*4<MENU1_INDEX)
+		{
+			Discrable_Menu1_String(display_str[menu1_old_page*4],display_value[menu1_old_page*4],menu1_old_page*4);
+			Display_String(1,menu1_str);
+		}
 		if(menu1_old_page*4+1<MENU1_INDEX)
 		{
 			Discrable_Menu1_String(display_str[menu1_old_page*4+1],display_value[menu1_old_page*4+1],menu1_old_page*4+1);

@@ -37,16 +37,16 @@ sbit PSB=P2^7;
 sbit REST=P2^6;
 
 //LEDºÍBEEP
-sbit LED=P2^0;
+sbit LED=P2^2;
 sbit BEEP = P1^0;
 
 //°´¼ü
-sbit UP_BTN		= P1^5;
-sbit DOWN_BTN = P1^2;
-sbit LEFT_BTN = P1^3;
-sbit RIGHT_BTN=	P1^1;
-sbit OK_BTN		= P1^7;
-sbit RETURN_BTN = P1^4;
+sbit UP_BTN		= P1^2;
+sbit DOWN_BTN = P1^4;
+sbit LEFT_BTN = P1^5;
+sbit RIGHT_BTN=	P1^7;
+sbit OK_BTN		= P1^1;
+sbit RETURN_BTN = P1^3;
 
 //******************************************************************
 

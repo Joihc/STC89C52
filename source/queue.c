@@ -34,3 +34,15 @@ uint8 QueueOut(struct FifoQueue *Queue,uint8 *sdat)
         return QueueOperateOk;
     }
 }
+void QueueCheckOut(struct FifoQueue *Queue,uint8 sdat)
+{
+	uint8 temp = QueueOperateOk;
+	if((Queue->front == Queue->rear) && (Queue->count == 0))
+	{                    // empty
+	       return;
+	}
+	while(Queue->dat[Queue->front] != sdat && temp!=QueueEmpty)
+	{
+		temp = QueueOut(Queue,&temp);
+	}
+}

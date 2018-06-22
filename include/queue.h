@@ -23,5 +23,5 @@ extern void QueueInit(struct FifoQueue *Queue);
 extern uint8 QueueIn(struct FifoQueue *Queue,uint8 sdat);
 // Queue Out
 extern uint8 QueueOut(struct FifoQueue *Queue,uint8 *sdat);
-
+extern void QueueCheckOut(struct FifoQueue *Queue,uint8 sdat);
 #endif
